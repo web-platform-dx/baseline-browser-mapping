@@ -15,7 +15,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "rm -rf dist; prettier . --write; tsc"
+    "prepare": "rm -rf dist; prettier . --write; tsc",
+    "refresh-downstream": "npx tsx scripts/refresh-downstream.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
