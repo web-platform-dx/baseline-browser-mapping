@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install environment
@@ -35,23 +35,30 @@ jobs:
             echo "changes-available=FALSE" >> $GITHUB_OUTPUT
           fi
 
-      - name: Publish new version to NPM
-        if: steps.refresh-downstream-script.outputs.changes-available == 'TRUE'
-        id: publish-to-npm
-        run: |
-          echo "publishing"
-          npm run prepare
-          npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Push changes to main
-        if: steps.publish-to-npm.outcome == 'success'
+        if: steps.refresh-downstream-script.outputs.changes-available == 'TRUE'
         id: push-to-main
         run: |
           echo "changes have occurred, committing to main"
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          npm run prepare
           git add .
           git commit -m 'Updating downstream-browsers'
           git push origin main
+
+      - name: Tag release for publishing
+        if: steps.push-to-main.outcome == 'success'
+        id: tag-release
+        run: |
+          npm version patch -m "Patch to %s because downstream-browsers.json changed"
+          git push && git push --tags
+
+      - name: Publish new version to NPM
+        if: steps.tag-release.outcome == 'success'
+        id: publish-to-npm
+        run: |
+          echo "publishing"
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
