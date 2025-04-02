@@ -44,6 +44,8 @@ type BrowserVersion = {
   release_date: string;
   engine?: string;
   engine_version?: string;
+  year?: number;
+  waCompatible?: boolean;
 };
 
 type Feature = {
@@ -92,6 +94,10 @@ const compareVersions = (
   incomingVersionString: string,
   previousVersionString: string,
 ): number => {
+  if (incomingVersionString === previousVersionString) {
+    return 0;
+  }
+
   let [incomingVersionStringMajor, incomingVersionStringMinor] =
     incomingVersionString.split(".");
   let [previousVersionStringMajor, previousVersionStringMinor] =
@@ -124,8 +130,7 @@ const compareVersions = (
       return 1;
     }
   }
-
-  return 0;
+  return -1;
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
@@ -228,9 +233,9 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2015) {
+  if (date.getFullYear() < 2016) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before 2015",
+      "There are no browser versions compatible with Baseline before 2016",
     );
   }
 
@@ -400,4 +405,82 @@ export function getCompatibleVersions(userOptions: Options): BrowserVersion[] {
       options.listAllCompatibleVersions,
     );
   }
+}
+
+type versionsObject = {
+  [browser: string]: BrowserVersion;
+};
+
+type YearVersions = {
+  [year: number]: versionsObject;
+};
+
+type matrixBrowserVersion = {};
+
+export function getVersionMatrix(): BrowserVersion[] {
+  let thisYear = new Date().getFullYear();
+
+  const yearArray = [...Array(thisYear).keys()].slice(2016);
+
+  const yearObject: YearVersions = {};
+
+  yearArray.forEach((year: number) => {
+    getCompatibleVersions({ targetYear: year }).forEach((version) => {
+      if (!yearObject[year]) {
+        yearObject[year] = {};
+      }
+      yearObject[year][version.browser] = version;
+    });
+  });
+
+  const allVersions = getCompatibleVersions({
+    targetYear: 2016,
+    listAllCompatibleVersions: true,
+  });
+
+  const waMinimumVersions = getCompatibleVersions({});
+  const waObject: versionsObject = {};
+  waMinimumVersions.forEach((version: BrowserVersion) => {
+    waObject[version.browser] = version;
+  });
+
+  const outputMatrix: BrowserVersion[] = new Array();
+
+  bcdCoreBrowserNames.forEach((browserName) => {
+    let thisBrowserAllVersions = allVersions
+      .filter((version) => version.browser == browserName)
+      .sort((a, b) => {
+        return compareVersions(a.version, b.version);
+      });
+
+    for (let year of yearArray) {
+      if (yearObject[year]) {
+        let minBrowserVersionInfo = yearObject[year][browserName] ?? {
+          version: "0",
+        };
+        let minBrowserVersion = minBrowserVersionInfo.version;
+        let sliceIndex = thisBrowserAllVersions.findIndex(
+          (element) =>
+            compareVersions(element.version, minBrowserVersion) === 0,
+        );
+        let subArray = thisBrowserAllVersions.slice(0, sliceIndex);
+        subArray.forEach((version) => {
+          outputMatrix.push({ ...version, year: year - 1 });
+        });
+        thisBrowserAllVersions = thisBrowserAllVersions.slice(
+          sliceIndex,
+          thisBrowserAllVersions.length,
+        );
+      }
+    }
+  });
+
+  outputMatrix.forEach((version, index, arr) => {
+    let waVersion = waObject[version.browser]?.version ?? "0";
+    if (arr[index])
+      arr[index].waCompatible =
+        compareVersions(version.version, waVersion) >= 0 ? true : false;
+  });
+
+  return outputMatrix;
 }
