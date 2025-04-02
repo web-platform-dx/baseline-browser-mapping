@@ -201,17 +201,17 @@ if (process.argv.length === 2) {
             { flag: "w" },
           );
 
-          let packageJson = JSON.parse(
-            readFileSync(process.cwd() + "/package.json", { encoding: "utf8" }),
-          );
-          let currentVersion = packageJson.version.split(".");
-          currentVersion[2]++;
-          packageJson.version = currentVersion.join(".");
-          writeFileSync(
-            process.cwd() + "/package.json",
-            JSON.stringify(packageJson, null, 2),
-            { encoding: "utf8" },
-          );
+          // let packageJson = JSON.parse(
+          //   readFileSync(process.cwd() + "/package.json", { encoding: "utf8" }),
+          // );
+          // let currentVersion = packageJson.version.split(".");
+          // currentVersion[2]++;
+          // packageJson.version = currentVersion.join(".");
+          // writeFileSync(
+          //   process.cwd() + "/package.json",
+          //   JSON.stringify(packageJson, null, 2),
+          //   { encoding: "utf8" },
+          // );
         } else {
           console.log("no updates at this time");
         }
