@@ -46,7 +46,7 @@ type BrowserVersion = {
   engine_version?: string;
 };
 
-interface MatrixBrowserVersion extends BrowserVersion {
+interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
   waCompatible: boolean;
 }
@@ -70,7 +70,7 @@ type versionsObject = {
 };
 
 type YearVersions = {
-  [year: number]: versionsObject;
+  [year: string]: versionsObject;
 };
 
 const bcdDownstreamBrowserNames: string[] = [
@@ -117,10 +117,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -133,10 +133,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -369,7 +369,7 @@ type Options = {
   targetYear?: number;
 };
 
-export function getCompatibleVersions(userOptions: Options): BrowserVersion[] {
+export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -418,19 +418,46 @@ export function getCompatibleVersions(userOptions: Options): BrowserVersion[] {
   }
 }
 
-export function getVersionMatrix(): MatrixBrowserVersion[] {
-  let thisYear = new Date().getFullYear();
+type AllVersionsOptions = {
+  /**
+   * Whether to return the output as a Javascript Object (`object`) or a CSV string (`csv`).
+   * Defaults to `object`.
+   */
+  outputFormat?: string;
+  /**
+   * Whether to include browsers that use the same engines as a core Baseline browser.
+   * Defaults to `false`.
+   */
+  includeDownstreamBrowsers?: boolean;
+};
 
-  const yearArray = [...Array(thisYear).keys()].slice(2016);
+export function getAllVersions(
+  userOptions?: AllVersionsOptions,
+): AllBrowsersBrowserVersion[] | string {
+  let incomingOptions = userOptions ?? {};
+
+  let options: AllVersionsOptions = {
+    outputFormat: incomingOptions.outputFormat ?? "object",
+    includeDownstreamBrowsers:
+      incomingOptions.includeDownstreamBrowsers ?? false,
+  };
+
+  let nextYear = new Date().getFullYear() + 1;
+
+  const yearArray = [...Array(nextYear).keys()].slice(2016);
+  console.log(yearArray);
   const yearObject: YearVersions = {};
   yearArray.forEach((year: number) => {
+    let yearString = year.toString();
+    yearObject[yearString] = {};
     getCompatibleVersions({ targetYear: year }).forEach((version) => {
-      if (!yearObject[year]) {
-        yearObject[year] = {};
+      if (yearObject[yearString]) {
+        yearObject[yearString][version.browser] = version;
       }
-      yearObject[year][version.browser] = version;
     });
   });
+
+  console.log(yearObject);
 
   const waMinimumVersions = getCompatibleVersions({});
   const waObject: versionsObject = {};
@@ -443,7 +470,7 @@ export function getVersionMatrix(): MatrixBrowserVersion[] {
     listAllCompatibleVersions: true,
   });
 
-  const outputMatrix: MatrixBrowserVersion[] = new Array();
+  const outputObject: AllBrowsersBrowserVersion[] = new Array();
 
   bcdCoreBrowserNames.forEach((browserName) => {
     let thisBrowserAllVersions = allVersions
@@ -452,7 +479,9 @@ export function getVersionMatrix(): MatrixBrowserVersion[] {
         return compareVersions(a.version, b.version);
       });
 
-    for (let year of yearArray) {
+    let waVersion = waObject[browserName]?.version ?? "0";
+
+    yearArray.forEach((year) => {
       if (yearObject[year]) {
         let minBrowserVersionInfo = yearObject[year][browserName] ?? {
           version: "0",
@@ -462,28 +491,35 @@ export function getVersionMatrix(): MatrixBrowserVersion[] {
           (element) =>
             compareVersions(element.version, minBrowserVersion) === 0,
         );
-        let subArray = thisBrowserAllVersions.slice(0, sliceIndex);
+
+        let subArray =
+          year === nextYear - 1
+            ? thisBrowserAllVersions
+            : thisBrowserAllVersions.slice(0, sliceIndex);
 
         subArray.forEach((version) => {
-          let waVersion = waObject[version.browser]?.version ?? "0";
           let isWaCompatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
-          let versionToPush: MatrixBrowserVersion = {
+          let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
             year: year - 1,
             waCompatible: isWaCompatible,
           };
-          outputMatrix.push(versionToPush);
+          outputObject.push(versionToPush);
         });
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
           sliceIndex,
           thisBrowserAllVersions.length,
         );
       }
-    }
+    });
   });
 
-  outputMatrix.sort((a, b) => {
+  if (options.includeDownstreamBrowsers) {
+    // todo: add downstream browsers to Object
+  }
+
+  outputObject.sort((a, b) => {
     if (a.year < b.year) {
       return -1;
     } else if (a.browser > b.browser) {
@@ -493,26 +529,24 @@ export function getVersionMatrix(): MatrixBrowserVersion[] {
     }
   });
 
-  return outputMatrix;
-}
+  if (options.outputFormat === "csv") {
+    let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"\n`;
 
-export function getVersionCsv() {
-  let versionMatrix = getVersionMatrix();
+    outputObject.forEach((version) => {
+      let outputs = {
+        browser: version.browser,
+        version: version.version,
+        year: version.year,
+        waCompatible: version.waCompatible,
+        release_date: version.release_date ?? "NULL",
+        engine: version.engine ?? "NULL",
+        engine_version: version.engine ?? "NULL",
+      };
+      outputString += `"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.waCompatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"\n`;
+    });
 
-  let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"\n`;
+    return outputString;
+  }
 
-  versionMatrix.forEach((version) => {
-    let outputs = {
-      browser: version.browser,
-      version: version.version,
-      year: version.year,
-      waCompatible: version.waCompatible,
-      release_date: version.release_date ?? "NULL",
-      engine: version.engine ?? "NULL",
-      engine_version: version.engine ?? "NULL",
-    };
-    outputString += `"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.waCompatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"\n`;
-  });
-
-  return outputString;
+  return outputObject;
 }
