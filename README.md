@@ -2,7 +2,7 @@
 
 By the [W3C WebDX Community Group](https://www.w3.org/community/webdx/) and contributors.
 
-`baseline-browser-mapping` exposes arrays of browsers compatible with Baseline Widely Available and specified Baseline year feature sets.
+`baseline-browser-mapping` exposes arrays of browsers compatible with Baseline Widely available and specified Baseline year feature sets.
 You can use `baseline-browser-mapping` to help you determine minimum browser version support for your chosen Baseline feature set.
 
 ## Prerequisites
@@ -25,11 +25,9 @@ To install the package, run:
 ]
 ```
 
-## Usage
+## Get Baseline Widely available browser versions
 
-### Get Baseline Widely Available browser versions
-
-To get the current list of minimum browser versions compatible with Baseline Widely Available features from the core browser set, call the `getCompatibleVersions()` function with:
+To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
 ```javascript
 import { getCompatibleVersions } from "baseline-browser-mapping";
@@ -64,9 +62,9 @@ Executed on 7th March 2025, the above code returns the following browser version
 ```
 
 > [!NOTE]  
-> The minimum versions of each browser are not strictly the final release before the Widely Available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely Available feature set.
+> The minimum versions of each browser are not strictly the final release before the Widely available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely available feature set.
 
-### Configuration options
+### `getCompatibleVersions()` configuration options
 
 `getCompatibleVersions()` accepts an `Object` as an argument with configuration options. The defaults are as follows:
 
@@ -118,7 +116,7 @@ Returns the following versions:
 
 #### `widelyAvailableOnDate`
 
-The `widelyAvailableOnDate` options returns the minimum versions compatible with Baseline Widely Available on a specified date in the formay `YYYY-MM-DD`:
+The `widelyAvailableOnDate` options returns the minimum versions compatible with Baseline Widely available on a specified date in the formay `YYYY-MM-DD`:
 
 ```javascript
 getCompatibleVersions({
@@ -127,7 +125,7 @@ getCompatibleVersions({
 ```
 
 > [!TIP]  
-> This can be particularly useful if you provide a versioned library that target Baseline Widely Available on each version's release date and want to provide a table of minimum supported browsers in your documentation.
+> This can be particularly useful if you provide a versioned library that target Baseline Widely available on each version's release date and want to provide a table of minimum supported browsers in your documentation.
 
 #### `includeDownstreamBrowsers`
 
@@ -150,6 +148,94 @@ getCompatibleVersions({
   listAllCompatibleVersions: true,
 });
 ```
+
+## Get data for all browser versions
+
+You may want to obtain data on all the browser versions available in this module for use in an analytics solution or dashboard. To get details of each browser version's level of Baseline support, call the `getAllVersions()` function:
+
+```javascript
+import { getAllVersions } from "baseline-browser-mapping";
+
+getAllVersions();
+```
+
+By default, this function returns an `Array` of `Objects` and excludes downstream browsers:
+
+```javascript
+[
+  ...
+  {
+    browser: 'chrome_android', // Browser name
+    version: '68', // Browser version as a string
+    release_date: '2018-07-24', // Release date
+    year: 2019, //Baseline year feature set the version supports
+    waCompatible: false // Boolean indicating whether the version is compatible with Baseline Widely available
+  },
+  ...
+]
+```
+
+### `getAllVersions()` Configuration options
+
+`getAllVersions()` accepts an `Object` as an argument with configuration options. The defaults are as follows:
+
+```javascript
+{
+  includeDownstreamBrowsers: false,
+  outputFormat: "array"
+}
+```
+
+#### `includeDownstreamBrowsers` (in `getAllVersions()` output)
+
+As with `getCompatibleVersions()`, you can set `includeDownstreamBrowsers` to `true` to include the Chromium downstream browsers [listed below](#list-of-downstream-browsers).
+
+```javascript
+getAllVersions({
+  includeDownstreamBrowsers: true,
+});
+```
+
+Downstream browsers include the same properties as core browsers, as well as the engine they use and which version of that engine they implement, for example:
+
+```javascript
+[
+  ...
+  {
+    "browser": "samsunginternet_android",
+    "version": "18.0",
+    "release_date": "2022-08-08",
+    "engine": "Blink",
+    "engine_version": "99",
+    "year": 2021,
+    "waCompatible": false
+  },
+  ...
+]
+```
+
+#### `outputFormat`
+
+By default, this function returns an `Array` of `Objects` which can be manipulated in Javascript or output to JSON. To return a `String` in CSV format, set `outputFormat` to `csv`:
+
+```javascript
+getAllVersions({
+  outputFormat: "csv",
+});
+```
+
+`getAllVersions` returns a `String` with a header row and comma-separated values for each browser version that you can write to a file or pass to another service. Core browsers will have "NULL" as the value for their `engine` and `engine_version`:
+
+```csv
+"browser","version","year","waCompatible","release_date","engine","engine_version"
+"chrome","53","2016","false","2016-09-07","NULL","NULL"
+...
+"ya_android","20.12","2020","false","2020-12-20","Blink","87"
+...
+```
+
+> [!NOTE]
+> The above example uses `"includeDownstreamBrowsers": true`
 
 ## Downstream browsers
 
