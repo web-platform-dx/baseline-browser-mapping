@@ -323,18 +323,18 @@ const getDownstreamBrowsers = (
       const versionEntry = sortedAndFilteredVersions[i];
       if (versionEntry) {
         const [versionNumber, versionData] = versionEntry;
-        let outputObject: BrowserVersion = {
+        let outputArray: BrowserVersion = {
           browser: browserName,
           version: versionNumber,
           release_date: versionData.release_date ?? "unknown",
         };
 
         if (versionData.engine && versionData.engine_version) {
-          outputObject.engine = versionData.engine;
-          outputObject.engine_version = versionData.engine_version;
+          outputArray.engine = versionData.engine;
+          outputArray.engine_version = versionData.engine_version;
         }
 
-        downstreamArray.push(outputObject);
+        downstreamArray.push(outputArray);
 
         if (!listAllCompatibleVersions) {
           break;
@@ -342,8 +342,8 @@ const getDownstreamBrowsers = (
       }
     }
   });
-  let outputArray = [...inputArray, ...downstreamArray];
-  return outputArray;
+
+  return downstreamArray;
 };
 
 type Options = {
@@ -411,10 +411,13 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;
   } else {
-    return getDownstreamBrowsers(
-      coreBrowserArray,
-      options.listAllCompatibleVersions,
-    );
+    return [
+      ...coreBrowserArray,
+      ...getDownstreamBrowsers(
+        coreBrowserArray,
+        options.listAllCompatibleVersions,
+      ),
+    ];
   }
 }
 
@@ -470,7 +473,7 @@ export function getAllVersions(
     listAllCompatibleVersions: true,
   });
 
-  const outputObject: AllBrowsersBrowserVersion[] = new Array();
+  const outputArray: AllBrowsersBrowserVersion[] = new Array();
 
   bcdCoreBrowserNames.forEach((browserName) => {
     let thisBrowserAllVersions = allVersions
@@ -505,7 +508,7 @@ export function getAllVersions(
             year: year - 1,
             waCompatible: isWaCompatible,
           };
-          outputObject.push(versionToPush);
+          outputArray.push(versionToPush);
         });
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
           sliceIndex,
@@ -516,10 +519,26 @@ export function getAllVersions(
   });
 
   if (options.includeDownstreamBrowsers) {
-    // todo: add downstream browsers to Object
+    let downstreamBrowsers = getDownstreamBrowsers(outputArray);
+
+    downstreamBrowsers.forEach((version: BrowserVersion) => {
+      let correspondingChromiumVersion = outputArray.find(
+        (upstreamVersion) =>
+          upstreamVersion.browser === "chrome" &&
+          upstreamVersion.version === version.engine_version,
+      );
+      if (correspondingChromiumVersion) {
+        let versionToPush: AllBrowsersBrowserVersion = {
+          ...version,
+          year: correspondingChromiumVersion.year,
+          waCompatible: correspondingChromiumVersion.waCompatible,
+        };
+        outputArray.push(versionToPush);
+      }
+    });
   }
 
-  outputObject.sort((a, b) => {
+  outputArray.sort((a, b) => {
     if (a.year < b.year) {
       return -1;
     } else if (a.browser > b.browser) {
@@ -532,7 +551,7 @@ export function getAllVersions(
   if (options.outputFormat === "csv") {
     let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"\n`;
 
-    outputObject.forEach((version) => {
+    outputArray.forEach((version) => {
       let outputs = {
         browser: version.browser,
         version: version.version,
@@ -540,7 +559,7 @@ export function getAllVersions(
         waCompatible: version.waCompatible,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
-        engine_version: version.engine ?? "NULL",
+        engine_version: version.engine_version ?? "NULL",
       };
       outputString += `"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.waCompatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"\n`;
     });
@@ -548,5 +567,5 @@ export function getAllVersions(
     return outputString;
   }
 
-  return outputObject;
+  return outputArray;
 }
