@@ -372,7 +372,7 @@ type Options = {
 };
 
 /**
- * Function that returns browser versions compatible with specified Baseline targets.
+ * Returns browser versions compatible with specified Baseline targets.
  * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
  * Takes an optional configuraation object `Object` with four optional properties:
  * - `listAllCompatibleVersions`: `false` (default) or `false`
@@ -446,7 +446,7 @@ type AllVersionsOptions = {
 };
 
 /**
- * A function that returns all known browser versions with their level of Baseline support.
+ * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
  * Takes an object as an argument with two optional properties:
  * - `includeDownstreamBrowsers`: `true` (default) or `false`
  * - `outputFormat`: `array` (default) or `csv`
