@@ -25,7 +25,7 @@ To install the package, run:
 ]
 ```
 
-## Get Baseline Widely available browser versions
+## Get Baseline Widely available browser versions or Baseline year browser versions
 
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
@@ -79,7 +79,7 @@ Executed on 7th March 2025, the above code returns the following browser version
 
 #### `targetYear`
 
-The `targetYear` option returns the minimum browser versions compatible with all interoperable features at the end of the specific calendar year. For example, calling:
+The `targetYear` option returns the minimum browser versions compatible with all **Baseline Newly available** features at the end of the specified calendar year. For example, calling:
 
 ```javascript
 getCompatibleVersions({
@@ -116,7 +116,7 @@ Returns the following versions:
 
 #### `widelyAvailableOnDate`
 
-The `widelyAvailableOnDate` options returns the minimum versions compatible with Baseline Widely available on a specified date in the formay `YYYY-MM-DD`:
+The `widelyAvailableOnDate` option returns the minimum versions compatible with Baseline Widely available on a specified date in the formay `YYYY-MM-DD`:
 
 ```javascript
 getCompatibleVersions({
@@ -125,7 +125,7 @@ getCompatibleVersions({
 ```
 
 > [!TIP]  
-> This can be particularly useful if you provide a versioned library that target Baseline Widely available on each version's release date and want to provide a table of minimum supported browsers in your documentation.
+> This option is useful if you provide a versioned library that targets Baseline Widely available on each version's release date and you need to provide a statement on minimum supported browser versions in your documentation.
 
 #### `includeDownstreamBrowsers`
 
@@ -141,7 +141,7 @@ For more information on downstream browsers, see [the section on downstream brow
 
 #### `listAllCompatibleVersions`
 
-If you need a list of all compatible versions, pass an object with the `listAllCompatibleVersions` :
+Setting `listAllCompatibleVersions` to true will include the minimum versions of each compatible browser, and all the subsequent versions:
 
 ```javascript
 getCompatibleVersions({
@@ -196,7 +196,7 @@ getAllVersions({
 });
 ```
 
-Downstream browsers include the same properties as core browsers, as well as the engine they use and which version of that engine they implement, for example:
+Downstream browsers include the same properties as core browsers, as well as the `engine`they use and `engine_version`, for example:
 
 ```javascript
 [
@@ -256,7 +256,7 @@ Shows UC Browser Mobile 13.8 implementing Chromium 100, and:
 
 `Mozilla/5.0 (Linux; arm_64; Android 11; Redmi Note 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.6613.123 YaBrowser/24.10.2.123.00 SA/3 Mobile Safari/537.36`
 
-Shows Yandex Browser Mobile 24.10 implementing Chromium 128. The Chromium version from this string is mapped to the main Chrome version from MDN `browser-compat-data`.
+Shows Yandex Browser Mobile 24.10 implementing Chromium 128. The Chromium version from this string is mapped to the corresponding Chrome version from MDN `browser-compat-data`.
 
 > [!NOTE]  
 > Where possible, approximate release dates have been included based on useragents.io "first seen" data. useragents.io does not have "first seen" dates prior to June 2020. However, these browsers' Baseline compatibility is determined by their Chromium version, so their release dates are more informative than critical.
@@ -284,7 +284,3 @@ This data is updated on a daily basis using a [script](https://github.com/web-pl
 
 > [!NOTE]  
 > All the non-core browsers currently included implement Chromium. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium version they implement, not their release date.
-
-## Contributing
-
-`baseline-browser-mapping` is part of the W3C WebDX Community Group's web-features project. To learn more about contributing to this module, see [CONTRIBUTING](/CONTRIBUTING.md).
