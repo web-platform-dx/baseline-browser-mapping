@@ -1,3 +1,6 @@
-import { getCompatibleVersions } from "./scripts/baseline-browser-versions.js";
+import {
+  getCompatibleVersions,
+  getAllVersions,
+} from "./scripts/baseline-browser-versions.js";
 
-export { getCompatibleVersions };
+export { getCompatibleVersions, getAllVersions };

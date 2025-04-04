@@ -46,6 +46,11 @@ type BrowserVersion = {
   engine_version?: string;
 };
 
+interface AllBrowsersBrowserVersion extends BrowserVersion {
+  year: number;
+  waCompatible: boolean;
+}
+
 type Feature = {
   id: string;
   name: string;
@@ -59,6 +64,14 @@ const coreBrowserData: [string, Browser][] = Object.entries(
   string,
   Browser,
 ][];
+
+type versionsObject = {
+  [browser: string]: BrowserVersion;
+};
+
+type YearVersions = {
+  [year: string]: versionsObject;
+};
 
 const bcdDownstreamBrowserNames: string[] = [
   "webview_android",
@@ -92,6 +105,10 @@ const compareVersions = (
   incomingVersionString: string,
   previousVersionString: string,
 ): number => {
+  if (incomingVersionString === previousVersionString) {
+    return 0;
+  }
+
   let [incomingVersionStringMajor, incomingVersionStringMinor] =
     incomingVersionString.split(".");
   let [previousVersionStringMajor, previousVersionStringMinor] =
@@ -124,8 +141,7 @@ const compareVersions = (
       return 1;
     }
   }
-
-  return 0;
+  return -1;
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
@@ -228,9 +244,9 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2015) {
+  if (date.getFullYear() < 2016) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before 2015",
+      "There are no browser versions compatible with Baseline before 2016",
     );
   }
 
@@ -307,18 +323,18 @@ const getDownstreamBrowsers = (
       const versionEntry = sortedAndFilteredVersions[i];
       if (versionEntry) {
         const [versionNumber, versionData] = versionEntry;
-        let outputObject: BrowserVersion = {
+        let outputArray: BrowserVersion = {
           browser: browserName,
           version: versionNumber,
           release_date: versionData.release_date ?? "unknown",
         };
 
         if (versionData.engine && versionData.engine_version) {
-          outputObject.engine = versionData.engine;
-          outputObject.engine_version = versionData.engine_version;
+          outputArray.engine = versionData.engine;
+          outputArray.engine_version = versionData.engine_version;
         }
 
-        downstreamArray.push(outputObject);
+        downstreamArray.push(outputArray);
 
         if (!listAllCompatibleVersions) {
           break;
@@ -326,8 +342,8 @@ const getDownstreamBrowsers = (
       }
     }
   });
-  let outputArray = [...inputArray, ...downstreamArray];
-  return outputArray;
+
+  return downstreamArray;
 };
 
 type Options = {
@@ -343,17 +359,28 @@ type Options = {
   includeDownstreamBrowsers?: boolean;
   /**
    * Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely available on the specified date.
-   * If left undefined and a `targetYear` is not passed, defaults to Widely Available as of the current date.
+   * If left undefined and a `targetYear` is not passed, defaults to Widely available as of the current date.
+   * > NOTE: cannot be used with `targetYear`.
    */
   widelyAvailableOnDate?: string | number;
   /**
    * Pass a year between 2016 and the current year to get browser versions compatible with all
    * Newly Available features as of the end of the year specified.
+   * > NOTE: cannot be used with `widelyAvailableOnDate`.
    */
   targetYear?: number;
 };
 
-export function getCompatibleVersions(userOptions: Options): BrowserVersion[] {
+/**
+ * Returns browser versions compatible with specified Baseline targets.
+ * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
+ * Takes an optional configuraation object `Object` with four optional properties:
+ * - `listAllCompatibleVersions`: `false` (default) or `false`
+ * - `includeDownstreamBrowsers`: `false` (default) or `false`
+ * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
+ * - `targetYear`: year in format `YYYY`
+ */
+export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -395,9 +422,161 @@ export function getCompatibleVersions(userOptions: Options): BrowserVersion[] {
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;
   } else {
-    return getDownstreamBrowsers(
-      coreBrowserArray,
-      options.listAllCompatibleVersions,
-    );
+    return [
+      ...coreBrowserArray,
+      ...getDownstreamBrowsers(
+        coreBrowserArray,
+        options.listAllCompatibleVersions,
+      ),
+    ];
   }
+}
+
+type AllVersionsOptions = {
+  /**
+   * Whether to return the output as a Javascript `Array` (`array`) or a CSV string (`csv`).
+   * Defaults to `array`.
+   */
+  outputFormat?: string;
+  /**
+   * Whether to include browsers that use the same engines as a core Baseline browser.
+   * Defaults to `false`.
+   */
+  includeDownstreamBrowsers?: boolean;
+};
+
+/**
+ * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
+ * Takes an object as an argument with two optional properties:
+ * - `includeDownstreamBrowsers`: `true` (default) or `false`
+ * - `outputFormat`: `array` (default) or `csv`
+ */
+export function getAllVersions(
+  userOptions?: AllVersionsOptions,
+): AllBrowsersBrowserVersion[] | string {
+  let incomingOptions = userOptions ?? {};
+
+  let options: AllVersionsOptions = {
+    outputFormat: incomingOptions.outputFormat ?? "array",
+    includeDownstreamBrowsers:
+      incomingOptions.includeDownstreamBrowsers ?? false,
+  };
+
+  let nextYear = new Date().getFullYear() + 1;
+
+  const yearArray = [...Array(nextYear).keys()].slice(2016);
+  const yearMinimumVersions: YearVersions = {};
+  yearArray.forEach((year: number) => {
+    yearMinimumVersions[year] = {};
+    getCompatibleVersions({ targetYear: year }).forEach((version) => {
+      if (yearMinimumVersions[year])
+        yearMinimumVersions[year][version.browser] = version;
+    });
+  });
+
+  const waMinimumVersions = getCompatibleVersions({});
+  const waObject: versionsObject = {};
+  waMinimumVersions.forEach((version: BrowserVersion) => {
+    waObject[version.browser] = version;
+  });
+
+  const allVersions = getCompatibleVersions({
+    targetYear: 2016,
+    listAllCompatibleVersions: true,
+  });
+
+  const outputArray: AllBrowsersBrowserVersion[] = new Array();
+
+  bcdCoreBrowserNames.forEach((browserName) => {
+    let thisBrowserAllVersions = allVersions
+      .filter((version) => version.browser == browserName)
+      .sort((a, b) => {
+        return compareVersions(a.version, b.version);
+      });
+
+    let waVersion = waObject[browserName]?.version ?? "0";
+
+    yearArray.forEach((year) => {
+      if (yearMinimumVersions[year]) {
+        let minBrowserVersionInfo = yearMinimumVersions[year][browserName] ?? {
+          version: "0",
+        };
+        let minBrowserVersion = minBrowserVersionInfo.version;
+        let sliceIndex = thisBrowserAllVersions.findIndex(
+          (element) =>
+            compareVersions(element.version, minBrowserVersion) === 0,
+        );
+
+        let subArray =
+          year === nextYear - 1
+            ? thisBrowserAllVersions
+            : thisBrowserAllVersions.slice(0, sliceIndex);
+
+        subArray.forEach((version) => {
+          let isWaCompatible =
+            compareVersions(version.version, waVersion) >= 0 ? true : false;
+          outputArray.push({
+            ...version,
+            year: year - 1,
+            waCompatible: isWaCompatible,
+          });
+        });
+
+        thisBrowserAllVersions = thisBrowserAllVersions.slice(
+          sliceIndex,
+          thisBrowserAllVersions.length,
+        );
+      }
+    });
+  });
+
+  if (options.includeDownstreamBrowsers) {
+    let downstreamBrowsers = getDownstreamBrowsers(outputArray);
+
+    downstreamBrowsers.forEach((version: BrowserVersion) => {
+      let correspondingChromiumVersion = outputArray.find(
+        (upstreamVersion) =>
+          upstreamVersion.browser === "chrome" &&
+          upstreamVersion.version === version.engine_version,
+      );
+      if (correspondingChromiumVersion) {
+        outputArray.push({
+          ...version,
+          year: correspondingChromiumVersion.year,
+          waCompatible: correspondingChromiumVersion.waCompatible,
+        });
+      }
+    });
+  }
+
+  outputArray.sort((a, b) => {
+    if (a.year < b.year) {
+      return -1;
+    } else if (a.browser > b.browser) {
+      return 1;
+    } else {
+      return compareVersions(a.version, b.version);
+    }
+  });
+
+  if (options.outputFormat === "csv") {
+    let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"`;
+
+    outputArray.forEach((version) => {
+      let outputs = {
+        browser: version.browser,
+        version: version.version,
+        year: version.year,
+        waCompatible: version.waCompatible,
+        release_date: version.release_date ?? "NULL",
+        engine: version.engine ?? "NULL",
+        engine_version: version.engine_version ?? "NULL",
+      };
+      outputString += `\n"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.waCompatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"`;
+    });
+
+    return outputString;
+  }
+
+  return outputArray;
 }
