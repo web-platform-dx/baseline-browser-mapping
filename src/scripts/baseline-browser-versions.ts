@@ -51,6 +51,18 @@ interface AllBrowsersBrowserVersion extends BrowserVersion {
   waCompatible: boolean;
 }
 
+type NestedBrowserVersions = {
+  [browser: string]: {
+    [version: string]: {
+      year: number;
+      waCompatible: boolean;
+      release_date?: string;
+      engine?: string;
+      engine_version?: string;
+    };
+  };
+};
+
 type Feature = {
   id: string;
   name: string;
@@ -449,11 +461,11 @@ type AllVersionsOptions = {
  * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
  * Takes an object as an argument with two optional properties:
  * - `includeDownstreamBrowsers`: `true` (default) or `false`
- * - `outputFormat`: `array` (default) or `csv`
+ * - `outputFormat`: `array` (default), `object` or `csv`
  */
 export function getAllVersions(
   userOptions?: AllVersionsOptions,
-): AllBrowsersBrowserVersion[] | string {
+): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
   let incomingOptions = userOptions ?? {};
 
   let options: AllVersionsOptions = {
@@ -558,6 +570,26 @@ export function getAllVersions(
       return compareVersions(a.version, b.version);
     }
   });
+
+  if (options.outputFormat === "object") {
+    const outputObject: NestedBrowserVersions = {};
+
+    outputArray.forEach((version: AllBrowsersBrowserVersion) => {
+      if (!outputObject[version.browser]) {
+        outputObject[version.browser] = {};
+      }
+      //@ts-ignore
+      outputObject[version.browser][version.version] = {
+        year: version.year,
+        waCompatible: version.waCompatible,
+        release_date: version.release_date,
+        engine: version.engine,
+        engine_version: version.engine_version,
+      };
+    });
+
+    return outputObject ?? {};
+  }
 
   if (options.outputFormat === "csv") {
     let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"`;
