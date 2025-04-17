@@ -2,3 +2,4 @@ node_modules/
 dist/
 package/
 baseline-browser-mapping-*.tgz
+.DS_Store
