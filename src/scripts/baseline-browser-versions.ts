@@ -129,10 +129,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -145,10 +145,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }

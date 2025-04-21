@@ -216,7 +216,7 @@ Downstream browsers include the same properties as core browsers, as well as the
 
 #### `outputFormat`
 
-By default, this function returns an `Array` of `Objects` which can be manipulated in Javascript or output to JSON. 
+By default, this function returns an `Array` of `Objects` which can be manipulated in Javascript or output to JSON.
 
 To return an `Object` that nests keys , set `outputFormat` to `object`:
 
@@ -280,7 +280,7 @@ getAllVersions({
 
 ### Static resources
 
-The outputs of  `getAllVersions()` are available as JSON or CSV files generated on a daily basis and hosted on GitHub pages:
+The outputs of `getAllVersions()` are available as JSON or CSV files generated on a daily basis and hosted on GitHub pages:
 
 - Core browsers only
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array.json)
