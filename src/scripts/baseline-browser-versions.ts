@@ -48,14 +48,14 @@ type BrowserVersion = {
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
-  waCompatible: boolean;
+  wa_compatible: boolean;
 }
 
 type NestedBrowserVersions = {
   [browser: string]: {
     [version: string]: {
       year: number;
-      waCompatible: boolean;
+      wa_compatible: boolean;
       release_date?: string;
       engine?: string;
       engine_version?: string;
@@ -129,10 +129,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -145,10 +145,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -525,12 +525,12 @@ export function getAllVersions(
             : thisBrowserAllVersions.slice(0, sliceIndex);
 
         subArray.forEach((version) => {
-          let isWaCompatible =
+          let iswa_compatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
           outputArray.push({
             ...version,
             year: year - 1,
-            waCompatible: isWaCompatible,
+            wa_compatible: iswa_compatible,
           });
         });
 
@@ -555,7 +555,7 @@ export function getAllVersions(
         outputArray.push({
           ...version,
           year: correspondingChromiumVersion.year,
-          waCompatible: correspondingChromiumVersion.waCompatible,
+          wa_compatible: correspondingChromiumVersion.wa_compatible,
         });
       }
     });
@@ -581,7 +581,7 @@ export function getAllVersions(
       //@ts-ignore
       outputObject[version.browser][version.version] = {
         year: version.year,
-        waCompatible: version.waCompatible,
+        wa_compatible: version.wa_compatible,
         release_date: version.release_date,
         engine: version.engine,
         engine_version: version.engine_version,
@@ -592,19 +592,19 @@ export function getAllVersions(
   }
 
   if (options.outputFormat === "csv") {
-    let outputString = `"browser","version","year","waCompatible","release_date","engine","engine_version"`;
+    let outputString = `"browser","version","year","wa_compatible","release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
       let outputs = {
         browser: version.browser,
         version: version.version,
         year: version.year,
-        waCompatible: version.waCompatible,
+        wa_compatible: version.wa_compatible,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
         engine_version: version.engine_version ?? "NULL",
       };
-      outputString += `\n"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.waCompatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"`;
+      outputString += `\n"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.wa_compatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"`;
     });
 
     return outputString;

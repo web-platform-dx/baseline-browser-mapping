@@ -216,7 +216,48 @@ Downstream browsers include the same properties as core browsers, as well as the
 
 #### `outputFormat`
 
-By default, this function returns an `Array` of `Objects` which can be manipulated in Javascript or output to JSON. To return a `String` in CSV format, set `outputFormat` to `csv`:
+By default, this function returns an `Array` of `Objects` which can be manipulated in Javascript or output to JSON. 
+
+To return an `Object` that nests keys , set `outputFormat` to `object`:
+
+```javascript
+getAllVersions({
+  outputFormat: "object",
+});
+```
+
+In thise case, `getAllVersions()` returns a nested object with the browser [IDs listed below](#list-of-downstream-browsers) as keys, and versions as keys within them:
+
+```javascript
+{
+  "chrome": {
+    "53": {
+      "year": 2016,
+      "wa_compatible": false,
+      "release_date": "2016-09-07"
+    },
+    ...
+}
+```
+
+Downstream browsers will include extra fields for `engine` and `engine_versions`
+
+```javascript
+{
+  ...
+  "webview_android": {
+    "53": {
+      "year": 2016,
+      "waCompatible": false,
+      "release_date": "2016-09-07",
+      "engine": "Blink",
+      "engine_version": "53"
+    },
+  ...
+}
+```
+
+To return a `String` in CSV format, set `outputFormat` to `csv`:
 
 ```javascript
 getAllVersions({
@@ -227,7 +268,7 @@ getAllVersions({
 `getAllVersions` returns a `String` with a header row and comma-separated values for each browser version that you can write to a file or pass to another service. Core browsers will have "NULL" as the value for their `engine` and `engine_version`:
 
 ```csv
-"browser","version","year","waCompatible","release_date","engine","engine_version"
+"browser","version","year","wa_compatible","release_date","engine","engine_version"
 "chrome","53","2016","false","2016-09-07","NULL","NULL"
 ...
 "ya_android","20.12","2020","false","2020-12-20","Blink","87"
@@ -236,6 +277,21 @@ getAllVersions({
 
 > [!NOTE]
 > The above example uses `"includeDownstreamBrowsers": true`
+
+### Static resources
+
+The outputs of  `getAllVersions()` are available as JSON or CSV files generated on a daily basis and hosted on GitHub pages:
+
+- Core browsers only
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions.csv)
+- Including downstream browsers
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_array.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_object.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions.csv)
+
+These files are updated on a daily basis.
 
 ## Downstream browsers
 
