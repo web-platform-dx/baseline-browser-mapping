@@ -1,4 +1,4 @@
-name: Refresh downstream-browsers.json
+name: Refresh static resources
 
 on:
   schedule:
