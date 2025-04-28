@@ -48,18 +48,13 @@ type BrowserVersion = {
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
-  wa_compatible: boolean;
+  supports?: string;
+  wa_compatible?: boolean;
 }
 
 type NestedBrowserVersions = {
   [browser: string]: {
-    [version: string]: {
-      year: number;
-      wa_compatible: boolean;
-      release_date?: string;
-      engine?: string;
-      engine_version?: string;
-    };
+    [version: string]: AllBrowsersBrowserVersion;
   };
 };
 
@@ -455,6 +450,11 @@ type AllVersionsOptions = {
    * Defaults to `false`.
    */
   includeDownstreamBrowsers?: boolean;
+  /**
+   * Whether to use the new "supports" property in place of "wa_compatible"
+   * Defaults to `false`
+   */
+  useSupports?: boolean;
 };
 
 /**
@@ -472,6 +472,7 @@ export function getAllVersions(
     outputFormat: incomingOptions.outputFormat ?? "array",
     includeDownstreamBrowsers:
       incomingOptions.includeDownstreamBrowsers ?? false,
+    useSupports: incomingOptions.useSupports ?? false,
   };
 
   let nextYear = new Date().getFullYear() + 1;
@@ -492,6 +493,17 @@ export function getAllVersions(
     waObject[version.browser] = version;
   });
 
+  const thirtyMonthsFromToday = new Date();
+  thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
+  const naMinimumVersions = getCompatibleVersions({
+    widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10),
+  });
+
+  const naObject: versionsObject = {};
+  naMinimumVersions.forEach((version: BrowserVersion) => {
+    naObject[version.browser] = version;
+  });
+
   const allVersions = getCompatibleVersions({
     targetYear: 2016,
     listAllCompatibleVersions: true,
@@ -507,6 +519,7 @@ export function getAllVersions(
       });
 
     let waVersion = waObject[browserName]?.version ?? "0";
+    let naVersion = naObject[browserName]?.version ?? "0";
 
     yearArray.forEach((year) => {
       if (yearMinimumVersions[year]) {
@@ -525,13 +538,32 @@ export function getAllVersions(
             : thisBrowserAllVersions.slice(0, sliceIndex);
 
         subArray.forEach((version) => {
-          let iswa_compatible =
+          let isWaCcompatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
-          outputArray.push({
+          let isNaCompatible =
+            compareVersions(version.version, naVersion) >= 0 ? true : false;
+
+          let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
             year: year - 1,
-            wa_compatible: iswa_compatible,
-          });
+          };
+
+          if (options.useSupports) {
+            let supports = "year_only";
+            if (isWaCcompatible && isNaCompatible) supports = "newly";
+            if (isWaCcompatible && !isNaCompatible) supports = "widely";
+            versionToPush = {
+              ...versionToPush,
+              supports: supports,
+            };
+          } else {
+            versionToPush = {
+              ...versionToPush,
+              wa_compatible: isWaCcompatible,
+            };
+          }
+
+          outputArray.push(versionToPush);
         });
 
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
@@ -552,11 +584,19 @@ export function getAllVersions(
           upstreamVersion.version === version.engine_version,
       );
       if (correspondingChromiumVersion) {
-        outputArray.push({
-          ...version,
-          year: correspondingChromiumVersion.year,
-          wa_compatible: correspondingChromiumVersion.wa_compatible,
-        });
+        if (options.useSupports) {
+          outputArray.push({
+            ...version,
+            year: correspondingChromiumVersion.year,
+            supports: correspondingChromiumVersion.supports,
+          });
+        } else {
+          outputArray.push({
+            ...version,
+            year: correspondingChromiumVersion.year,
+            wa_compatible: correspondingChromiumVersion.wa_compatible,
+          });
+        }
       }
     });
   }
@@ -578,33 +618,58 @@ export function getAllVersions(
       if (!outputObject[version.browser]) {
         outputObject[version.browser] = {};
       }
-      //@ts-ignore
-      outputObject[version.browser][version.version] = {
+      let versionToAdd = {
         year: version.year,
-        wa_compatible: version.wa_compatible,
         release_date: version.release_date,
         engine: version.engine,
         engine_version: version.engine_version,
       };
+      //@ts-ignore
+      outputObject[version.browser][version.version] = options.useSupports
+        ? { ...versionToAdd, supports: version.supports }
+        : { ...versionToAdd, wa_compatible: version.wa_compatible };
     });
 
     return outputObject ?? {};
   }
 
   if (options.outputFormat === "csv") {
-    let outputString = `"browser","version","year","wa_compatible","release_date","engine","engine_version"`;
+    let outputString =
+      `"browser","version","year",` +
+      `"${options.useSupports ? "supports" : "wa_compatible"}",` +
+      `"release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
-      let outputs = {
+      let outputs: {
+        browser: string;
+        version: string;
+        year: number;
+        release_date: string;
+        engine: string;
+        engine_version: string;
+        supports?: string;
+        wa_compatible?: boolean;
+      } = {
         browser: version.browser,
         version: version.version,
         year: version.year,
-        wa_compatible: version.wa_compatible,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
         engine_version: version.engine_version ?? "NULL",
       };
-      outputString += `\n"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.wa_compatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"`;
+
+      outputs = options.useSupports
+        ? { ...outputs, supports: version.supports }
+        : { ...outputs, wa_compatible: version.wa_compatible };
+
+      outputString +=
+        `\n"${outputs.browser}","` +
+        `${outputs.version}","` +
+        `${outputs.year}","` +
+        `${options.useSupports ? outputs.supports : outputs.wa_compatible}","` +
+        `${outputs.release_date}","` +
+        `${outputs.engine}","` +
+        `${outputs.engine_version}"`;
     });
 
     return outputString;
