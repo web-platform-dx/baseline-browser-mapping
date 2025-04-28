@@ -49,17 +49,12 @@ type BrowserVersion = {
 interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
   wa_compatible: boolean;
+  na_compatible?: boolean;
 }
 
 type NestedBrowserVersions = {
   [browser: string]: {
-    [version: string]: {
-      year: number;
-      wa_compatible: boolean;
-      release_date?: string;
-      engine?: string;
-      engine_version?: string;
-    };
+    [version: string]: AllBrowsersBrowserVersion;
   };
 };
 
@@ -129,10 +124,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -145,10 +140,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -455,6 +450,11 @@ type AllVersionsOptions = {
    * Defaults to `false`.
    */
   includeDownstreamBrowsers?: boolean;
+  /**
+   * Whether to include a property on each browser indicating whether it supports the Newly available feature set.
+   * Defaults to `false`.
+   */
+  includeNewlyAvailable?: boolean;
 };
 
 /**
@@ -464,7 +464,7 @@ type AllVersionsOptions = {
  * - `outputFormat`: `array` (default), `object` or `csv`
  */
 export function getAllVersions(
-  userOptions?: AllVersionsOptions,
+  userOptions?: AllVersionsOptions
 ): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
   let incomingOptions = userOptions ?? {};
 
@@ -472,6 +472,7 @@ export function getAllVersions(
     outputFormat: incomingOptions.outputFormat ?? "array",
     includeDownstreamBrowsers:
       incomingOptions.includeDownstreamBrowsers ?? false,
+    includeNewlyAvailable: incomingOptions.includeNewlyAvailable ?? false
   };
 
   let nextYear = new Date().getFullYear() + 1;
@@ -492,6 +493,20 @@ export function getAllVersions(
     waObject[version.browser] = version;
   });
 
+  const thirtyMonthsFromToday = new Date();
+  thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
+  console.log(thirtyMonthsFromToday);
+  const naMinimumVersions = getCompatibleVersions({
+    widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10)
+  });
+
+  const naObject: versionsObject = {};
+  naMinimumVersions.forEach((version: BrowserVersion) => {
+    naObject[version.browser] = version;
+  });
+
+  console.log(naObject);
+
   const allVersions = getCompatibleVersions({
     targetYear: 2016,
     listAllCompatibleVersions: true,
@@ -507,6 +522,7 @@ export function getAllVersions(
       });
 
     let waVersion = waObject[browserName]?.version ?? "0";
+    let naVersion = naObject[browserName]?.version ?? "0";
 
     yearArray.forEach((year) => {
       if (yearMinimumVersions[year]) {
@@ -525,13 +541,18 @@ export function getAllVersions(
             : thisBrowserAllVersions.slice(0, sliceIndex);
 
         subArray.forEach((version) => {
-          let iswa_compatible =
+          let isWaCcompatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
+          let isNaCompatible = compareVersions(version.version, naVersion) >= 0 ? true : false;
           outputArray.push({
             ...version,
             year: year - 1,
-            wa_compatible: iswa_compatible,
+            wa_compatible: isWaCcompatible,
           });
+          if (options.includeNewlyAvailable) {
+            //@ts-ignore
+            outputArray[outputArray.length - 1]['na_compatible'] = isNaCompatible
+          }
         });
 
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
@@ -557,6 +578,9 @@ export function getAllVersions(
           year: correspondingChromiumVersion.year,
           wa_compatible: correspondingChromiumVersion.wa_compatible,
         });
+        if (options.includeNewlyAvailable)
+          //@ts-ignore
+          outputArray[outputArray.length - 1]['na_compatible'] = correspondingChromiumVersion.na_compatible
       }
     });
   }
@@ -586,13 +610,25 @@ export function getAllVersions(
         engine: version.engine,
         engine_version: version.engine_version,
       };
+
+      if (options.includeNewlyAvailable)
+        //@ts-ignore
+        outputObject[version.browser][version.version] = {
+          //@ts-ignore
+          ...outputObject[version.browser][version.version],
+          na_compatible: version.na_compatible
+        }
+
     });
 
     return outputObject ?? {};
   }
 
   if (options.outputFormat === "csv") {
-    let outputString = `"browser","version","year","wa_compatible","release_date","engine","engine_version"`;
+    let outputString =
+      `"browser","version","year","wa_compatible",` +
+      `${(!options.includeNewlyAvailable ? '' : '"na_compatible",')}` +
+      `"release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
       let outputs = {
@@ -600,11 +636,20 @@ export function getAllVersions(
         version: version.version,
         year: version.year,
         wa_compatible: version.wa_compatible,
+        na_compatible: version.na_compatible,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
         engine_version: version.engine_version ?? "NULL",
       };
-      outputString += `\n"${outputs.browser}","${outputs.version}","${outputs.year}","${outputs.wa_compatible}","${outputs.release_date}","${outputs.engine}","${outputs.engine_version}"`;
+      outputString +=
+        `\n"${outputs.browser}","` +
+        `${outputs.version}","` +
+        `${outputs.year}","` +
+        `${outputs.wa_compatible}","` +
+        `${(!options.includeNewlyAvailable ? '' : outputs.na_compatible + ",")}` +
+        `${outputs.release_date}","` +
+        `${outputs.engine}","` +
+        `${outputs.engine_version}"`;
     });
 
     return outputString;
