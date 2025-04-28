@@ -29,5 +29,5 @@
     "prettier": "^3.5.3",
     "typescript": "^5.7.2"
   },
-  "repository": "web-platform-dx/baseline-browser-mapping"
+  "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
 }
