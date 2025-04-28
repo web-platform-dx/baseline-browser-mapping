@@ -53,12 +53,3 @@ jobs:
         run: |
           npm version patch -m "Patch to %s because downstream-browsers.json changed"
           git push && git push --tags
-
-      - name: Publish new version to NPM
-        if: steps.tag-release.outcome == 'success'
-        id: publish-to-npm
-        run: |
-          echo "publishing"
-          npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
