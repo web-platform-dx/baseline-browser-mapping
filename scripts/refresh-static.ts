@@ -19,6 +19,31 @@ writeFileSync(
   { encoding: "utf-8" },
 );
 
+
+writeFileSync(
+  "./static/all_versions_array_with_supports.json",
+  JSON.stringify(getAllVersions({ useSupports: true })),
+  { encoding: "utf-8" },
+);
+writeFileSync(
+  "./static/all_versions_object_with_supports.json",
+  JSON.stringify(
+    getAllVersions({
+      outputFormat: "object",
+      useSupports: true,
+    }),
+  ),
+  { encoding: "utf-8" },
+);
+writeFileSync(
+  "./static/all_versions_with_supports.csv",
+  getAllVersions({
+    outputFormat: "csv",
+    useSupports: true,
+  }).toString(),
+  { encoding: "utf-8" },
+);
+
 // Write with downstream versions
 writeFileSync(
   "./static/with_downstream/all_versions_array.json",
@@ -44,6 +69,37 @@ writeFileSync(
   getAllVersions({
     outputFormat: "csv",
     includeDownstreamBrowsers: true,
+  }).toString(),
+  { encoding: "utf-8" },
+);
+
+writeFileSync(
+  "./static/with_downstream/all_versions_array_with_supports.json",
+  JSON.stringify(
+    getAllVersions({
+      includeDownstreamBrowsers: true,
+      useSupports: true,
+    }),
+  ),
+  { encoding: "utf-8" },
+);
+writeFileSync(
+  "./static/with_downstream/all_versions_object_with_supports.json",
+  JSON.stringify(
+    getAllVersions({
+      outputFormat: "object",
+      includeDownstreamBrowsers: true,
+      useSupports: true,
+    }),
+  ),
+  { encoding: "utf-8" },
+);
+writeFileSync(
+  "./static/with_downstream/all_versions_with_supports.csv",
+  getAllVersions({
+    outputFormat: "csv",
+    includeDownstreamBrowsers: true,
+    useSupports: true,
   }).toString(),
   { encoding: "utf-8" },
 );

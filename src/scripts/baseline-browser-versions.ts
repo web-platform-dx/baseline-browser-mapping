@@ -48,7 +48,8 @@ type BrowserVersion = {
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
-  supports: string;
+  supports?: string;
+  wa_compatible?: boolean;
 }
 
 type NestedBrowserVersions = {
@@ -449,6 +450,11 @@ type AllVersionsOptions = {
    * Defaults to `false`.
    */
   includeDownstreamBrowsers?: boolean;
+  /**
+   * Whether to use the new "supports" property in place of "wa_compatible"
+   * Defaults to `false`
+   */
+  useSupports?: boolean;
 };
 
 /**
@@ -466,6 +472,7 @@ export function getAllVersions(
     outputFormat: incomingOptions.outputFormat ?? "array",
     includeDownstreamBrowsers:
       incomingOptions.includeDownstreamBrowsers ?? false,
+    useSupports: incomingOptions.useSupports ?? false,
   };
 
   let nextYear = new Date().getFullYear() + 1;
@@ -535,17 +542,27 @@ export function getAllVersions(
             compareVersions(version.version, waVersion) >= 0 ? true : false;
           let isNaCompatible = compareVersions(version.version, naVersion) >= 0 ? true : false;
 
-          let supports = 'year_only'
-
-          if (isWaCcompatible && isNaCompatible) supports = 'newly'
-
-          if (isWaCcompatible && !isNaCompatible) supports = 'widely'
-
-          outputArray.push({
+          let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year - 1,
-            supports: supports
-          });
+            year: year - 1
+          }
+
+          if (options.useSupports) {
+            let supports = 'year_only'
+            if (isWaCcompatible && isNaCompatible) supports = 'newly'
+            if (isWaCcompatible && !isNaCompatible) supports = 'widely'
+            versionToPush = {
+              ...versionToPush,
+              supports: supports
+            };
+          } else {
+            versionToPush = {
+              ...versionToPush,
+              wa_compatible: isWaCcompatible
+            }
+          }
+
+          outputArray.push(versionToPush);
         });
 
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
@@ -566,11 +583,19 @@ export function getAllVersions(
           upstreamVersion.version === version.engine_version,
       );
       if (correspondingChromiumVersion) {
-        outputArray.push({
-          ...version,
-          year: correspondingChromiumVersion.year,
-          supports: correspondingChromiumVersion.supports
-        });
+        if (options.useSupports) {
+          outputArray.push({
+            ...version,
+            year: correspondingChromiumVersion.year,
+            supports: correspondingChromiumVersion.supports
+          });
+        } else {
+          outputArray.push({
+            ...version,
+            year: correspondingChromiumVersion.year,
+            wa_compatible: correspondingChromiumVersion.wa_compatible
+          });
+        }
       }
     });
   }
@@ -592,14 +617,16 @@ export function getAllVersions(
       if (!outputObject[version.browser]) {
         outputObject[version.browser] = {};
       }
-      //@ts-ignore
-      outputObject[version.browser][version.version] = {
+      let versionToAdd = {
         year: version.year,
-        supports: version.supports,
         release_date: version.release_date,
         engine: version.engine,
         engine_version: version.engine_version,
-      };
+      }
+      //@ts-ignore
+      outputObject[version.browser][version.version] = options.useSupports
+        ? { ...versionToAdd, supports: version.supports }
+        : { ...versionToAdd, wa_compatible: version.wa_compatible }
 
     });
 
@@ -609,24 +636,37 @@ export function getAllVersions(
   if (options.outputFormat === "csv") {
     let outputString =
       `"browser","version","year",` +
-      `"supports",` +
+      `"${options.useSupports ? 'supports' : 'wa_compatible'}",` +
       `"release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
-      let outputs = {
+      let outputs: {
+        browser: string;
+        version: string;
+        year: number;
+        release_date: string;
+        engine: string;
+        engine_version: string;
+        supports?: string;
+        wa_compatible?: boolean;
+      } = {
         browser: version.browser,
         version: version.version,
         year: version.year,
-        supports: version.supports,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
         engine_version: version.engine_version ?? "NULL",
       };
+
+      outputs = options.useSupports
+        ? { ...outputs, supports: version.supports }
+        : { ...outputs, wa_compatible: version.wa_compatible }
+
       outputString +=
         `\n"${outputs.browser}","` +
         `${outputs.version}","` +
         `${outputs.year}","` +
-        `${outputs.supports}","` +
+        `${options.useSupports ? outputs.supports : outputs.wa_compatible}","` +
         `${outputs.release_date}","` +
         `${outputs.engine}","` +
         `${outputs.engine_version}"`;
