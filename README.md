@@ -165,15 +165,21 @@ By default, this function returns an `Array` of `Objects` and excludes downstrea
 [
   ...
   {
-    browser: 'chrome_android', // Browser name
-    version: '68', // Browser version as a string
-    release_date: '2018-07-24', // Release date
-    year: 2019, //Baseline year feature set the version supports
-    supports: "year_only" // String indicating whether the version supports "year_only" features, "widely" or "newly"
+    browser: "firefox_android", // Browser name
+    version: "125", // Browser version
+    release_date: "2024-04-16", // Release date
+    year: 2023, // Baseline year feature set the version supports
+    supports: "widely" // Which feature set is supported
   },
   ...
 ]
 ```
+
+The `supports` property has three possible values:
+
+- `year_only` for browser versions that do not support all Baseline Widely available Newly Available features.
+- `widely` for browser versions that support all Widely available features.
+- `newly` for browser versions that support all Newly available features.
 
 ### `getAllVersions()` Configuration options
 
@@ -202,13 +208,13 @@ Downstream browsers include the same properties as core browsers, as well as the
 [
   ...
   {
-    "browser": "samsunginternet_android",
-    "version": "18.0",
-    "release_date": "2022-08-08",
-    "engine": "Blink",
-    "engine_version": "99",
-    "year": 2021,
-    "supports": "year_only"
+    browser: "samsunginternet_android",
+    version: "27.0",
+    release_date: "2024-11-06",
+    engine: "Blink",
+    engine_version: "125",
+    year: 2023,
+    supports: "widely"
   },
   ...
 ]
