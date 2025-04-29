@@ -169,7 +169,7 @@ By default, this function returns an `Array` of `Objects` and excludes downstrea
     version: '68', // Browser version as a string
     release_date: '2018-07-24', // Release date
     year: 2019, //Baseline year feature set the version supports
-    waCompatible: false // Boolean indicating whether the version is compatible with Baseline Widely available
+    supports: "year_only" // String indicating whether the version supports "year_only" features, "widely" or "newly"
   },
   ...
 ]
@@ -208,7 +208,7 @@ Downstream browsers include the same properties as core browsers, as well as the
     "engine": "Blink",
     "engine_version": "99",
     "year": 2021,
-    "waCompatible": false
+    "supports": "year_only"
   },
   ...
 ]
@@ -233,7 +233,7 @@ In thise case, `getAllVersions()` returns a nested object with the browser [IDs 
   "chrome": {
     "53": {
       "year": 2016,
-      "wa_compatible": false,
+      "supports": "year_only",
       "release_date": "2016-09-07"
     },
     ...
@@ -248,7 +248,7 @@ Downstream browsers will include extra fields for `engine` and `engine_versions`
   "webview_android": {
     "53": {
       "year": 2016,
-      "waCompatible": false,
+      "supports": "year_only",
       "release_date": "2016-09-07",
       "engine": "Blink",
       "engine_version": "53"
@@ -268,10 +268,13 @@ getAllVersions({
 `getAllVersions` returns a `String` with a header row and comma-separated values for each browser version that you can write to a file or pass to another service. Core browsers will have "NULL" as the value for their `engine` and `engine_version`:
 
 ```csv
-"browser","version","year","wa_compatible","release_date","engine","engine_version"
-"chrome","53","2016","false","2016-09-07","NULL","NULL"
+"browser","version","year","supports","release_date","engine","engine_version"
+"chrome","53","2016","year_only","2016-09-07","NULL","NULL"
 ...
-"ya_android","20.12","2020","false","2020-12-20","Blink","87"
+"firefox","135","2024","widely","2025-02-04","NULL","NULL"
+"firefox","136","2024","newly","2025-03-04","NULL","NULL"
+...
+"ya_android","20.12","2020","year_only","2020-12-20","Blink","87"
 ...
 ```
 
