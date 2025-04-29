@@ -165,15 +165,33 @@ By default, this function returns an `Array` of `Objects` and excludes downstrea
 [
   ...
   {
-    browser: 'chrome_android', // Browser name
-    version: '68', // Browser version as a string
-    release_date: '2018-07-24', // Release date
-    year: 2019, //Baseline year feature set the version supports
-    waCompatible: false // Boolean indicating whether the version is compatible with Baseline Widely available
+    browser: "firefox_android", // Browser name
+    version: "125", // Browser version
+    release_date: "2024-04-16", // Release date
+    year: 2023, // Baseline year feature set the version supports
+    wa_compatible: true // Whether the browser version supports Widely available
   },
   ...
 ]
 ```
+
+### Understanding which browsers support Newly available features
+
+You may want to understand which recent browser versions support all Newly available features. You can replace the `wa_compatible` property with a `supports` property using the `useSupport` option:
+
+```javascript
+getAllVersions({
+  useSupports: true,
+});
+```
+
+The `supports` property has three possible values:
+
+- `year_only` for browser versions that do not support all Baseline Widely available Newly Available features.
+- `widely` for browser versions that support all Widely available features.
+- `newly` for browser versions that support all Newly available features.
+
+Browser versions that support all Newly available features also support all Widely available features.
 
 ### `getAllVersions()` Configuration options
 
@@ -202,13 +220,13 @@ Downstream browsers include the same properties as core browsers, as well as the
 [
   ...
   {
-    "browser": "samsunginternet_android",
-    "version": "18.0",
-    "release_date": "2022-08-08",
-    "engine": "Blink",
-    "engine_version": "99",
-    "year": 2021,
-    "waCompatible": false
+    browser: "samsunginternet_android",
+    version: "27.0",
+    release_date: "2024-11-06",
+    engine: "Blink",
+    engine_version: "125",
+    year: 2023,
+    supports: "widely"
   },
   ...
 ]
@@ -233,7 +251,7 @@ In thise case, `getAllVersions()` returns a nested object with the browser [IDs 
   "chrome": {
     "53": {
       "year": 2016,
-      "wa_compatible": false,
+      "supports": "year_only",
       "release_date": "2016-09-07"
     },
     ...
@@ -248,7 +266,7 @@ Downstream browsers will include extra fields for `engine` and `engine_versions`
   "webview_android": {
     "53": {
       "year": 2016,
-      "waCompatible": false,
+      "supports": "year_only",
       "release_date": "2016-09-07",
       "engine": "Blink",
       "engine_version": "53"
@@ -268,10 +286,13 @@ getAllVersions({
 `getAllVersions` returns a `String` with a header row and comma-separated values for each browser version that you can write to a file or pass to another service. Core browsers will have "NULL" as the value for their `engine` and `engine_version`:
 
 ```csv
-"browser","version","year","wa_compatible","release_date","engine","engine_version"
-"chrome","53","2016","false","2016-09-07","NULL","NULL"
+"browser","version","year","supports","release_date","engine","engine_version"
+"chrome","53","2016","year_only","2016-09-07","NULL","NULL"
 ...
-"ya_android","20.12","2020","false","2020-12-20","Blink","87"
+"firefox","135","2024","widely","2025-02-04","NULL","NULL"
+"firefox","136","2024","newly","2025-03-04","NULL","NULL"
+...
+"ya_android","20.12","2020","year_only","2020-12-20","Blink","87"
 ...
 ```
 
@@ -286,10 +307,18 @@ The outputs of `getAllVersions()` are available as JSON or CSV files generated o
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions.csv)
+    Core browsers only, with `supports` property
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array_with_supports.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object_with_supports.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_with_supports.csv)
 - Including downstream browsers
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_array.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_object.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions.csv)
+- Including downstream browsers with `supports` property
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_array_with_supports.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_object_with_supports.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_with_supports.csv)
 
 These files are updated on a daily basis.
 

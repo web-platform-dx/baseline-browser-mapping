@@ -21,11 +21,11 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.1",
-    "web-features": "^2.31.0"
+    "@mdn/browser-compat-data": "^6.0.9",
+    "web-features": "^2.34.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.5",
+    "@types/node": "^22.15.3",
     "prettier": "^3.5.3",
     "typescript": "^5.7.2"
   },
