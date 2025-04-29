@@ -48,8 +48,7 @@ type BrowserVersion = {
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
   year: number;
-  wa_compatible: boolean;
-  na_compatible?: boolean;
+  supports: string;
 }
 
 type NestedBrowserVersions = {
@@ -450,11 +449,6 @@ type AllVersionsOptions = {
    * Defaults to `false`.
    */
   includeDownstreamBrowsers?: boolean;
-  /**
-   * Whether to include a property on each browser indicating whether it supports the Newly available feature set.
-   * Defaults to `false`.
-   */
-  includeNewlyAvailable?: boolean;
 };
 
 /**
@@ -472,7 +466,6 @@ export function getAllVersions(
     outputFormat: incomingOptions.outputFormat ?? "array",
     includeDownstreamBrowsers:
       incomingOptions.includeDownstreamBrowsers ?? false,
-    includeNewlyAvailable: incomingOptions.includeNewlyAvailable ?? false
   };
 
   let nextYear = new Date().getFullYear() + 1;
@@ -495,7 +488,6 @@ export function getAllVersions(
 
   const thirtyMonthsFromToday = new Date();
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
-  console.log(thirtyMonthsFromToday);
   const naMinimumVersions = getCompatibleVersions({
     widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10)
   });
@@ -504,8 +496,6 @@ export function getAllVersions(
   naMinimumVersions.forEach((version: BrowserVersion) => {
     naObject[version.browser] = version;
   });
-
-  console.log(naObject);
 
   const allVersions = getCompatibleVersions({
     targetYear: 2016,
@@ -544,15 +534,18 @@ export function getAllVersions(
           let isWaCcompatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
           let isNaCompatible = compareVersions(version.version, naVersion) >= 0 ? true : false;
+
+          let supports = 'year_only'
+
+          if (isWaCcompatible && isNaCompatible) supports = 'newly'
+
+          if (isWaCcompatible && !isNaCompatible) supports = 'widely'
+
           outputArray.push({
             ...version,
             year: year - 1,
-            wa_compatible: isWaCcompatible,
+            supports: supports
           });
-          if (options.includeNewlyAvailable) {
-            //@ts-ignore
-            outputArray[outputArray.length - 1]['na_compatible'] = isNaCompatible
-          }
         });
 
         thisBrowserAllVersions = thisBrowserAllVersions.slice(
@@ -576,11 +569,8 @@ export function getAllVersions(
         outputArray.push({
           ...version,
           year: correspondingChromiumVersion.year,
-          wa_compatible: correspondingChromiumVersion.wa_compatible,
+          supports: correspondingChromiumVersion.supports
         });
-        if (options.includeNewlyAvailable)
-          //@ts-ignore
-          outputArray[outputArray.length - 1]['na_compatible'] = correspondingChromiumVersion.na_compatible
       }
     });
   }
@@ -605,19 +595,11 @@ export function getAllVersions(
       //@ts-ignore
       outputObject[version.browser][version.version] = {
         year: version.year,
-        wa_compatible: version.wa_compatible,
+        supports: version.supports,
         release_date: version.release_date,
         engine: version.engine,
         engine_version: version.engine_version,
       };
-
-      if (options.includeNewlyAvailable)
-        //@ts-ignore
-        outputObject[version.browser][version.version] = {
-          //@ts-ignore
-          ...outputObject[version.browser][version.version],
-          na_compatible: version.na_compatible
-        }
 
     });
 
@@ -626,8 +608,8 @@ export function getAllVersions(
 
   if (options.outputFormat === "csv") {
     let outputString =
-      `"browser","version","year","wa_compatible",` +
-      `${(!options.includeNewlyAvailable ? '' : '"na_compatible",')}` +
+      `"browser","version","year",` +
+      `"supports",` +
       `"release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
@@ -635,8 +617,7 @@ export function getAllVersions(
         browser: version.browser,
         version: version.version,
         year: version.year,
-        wa_compatible: version.wa_compatible,
-        na_compatible: version.na_compatible,
+        supports: version.supports,
         release_date: version.release_date ?? "NULL",
         engine: version.engine ?? "NULL",
         engine_version: version.engine_version ?? "NULL",
@@ -645,8 +626,7 @@ export function getAllVersions(
         `\n"${outputs.browser}","` +
         `${outputs.version}","` +
         `${outputs.year}","` +
-        `${outputs.wa_compatible}","` +
-        `${(!options.includeNewlyAvailable ? '' : outputs.na_compatible + ",")}` +
+        `${outputs.supports}","` +
         `${outputs.release_date}","` +
         `${outputs.engine}","` +
         `${outputs.engine_version}"`;
