@@ -19,7 +19,6 @@ writeFileSync(
   { encoding: "utf-8" },
 );
 
-
 writeFileSync(
   "./static/all_versions_array_with_supports.json",
   JSON.stringify(getAllVersions({ useSupports: true })),

@@ -169,10 +169,20 @@ By default, this function returns an `Array` of `Objects` and excludes downstrea
     version: "125", // Browser version
     release_date: "2024-04-16", // Release date
     year: 2023, // Baseline year feature set the version supports
-    supports: "widely" // Which feature set is supported
+    wa_compatible: true // Whether the browser version supports Widely available
   },
   ...
 ]
+```
+
+### Understanding which browsers support Newly available features
+
+You may want to understand which recent browser versions support all Newly available features. You can replace the `wa_compatible` property with a `supports` property using the `useSupport` option:
+
+```javascript
+getAllVersions({
+  useSupports: true,
+});
 ```
 
 The `supports` property has three possible values:
@@ -180,6 +190,8 @@ The `supports` property has three possible values:
 - `year_only` for browser versions that do not support all Baseline Widely available Newly Available features.
 - `widely` for browser versions that support all Widely available features.
 - `newly` for browser versions that support all Newly available features.
+
+Browser versions that support all Newly available features also support all Widely available features.
 
 ### `getAllVersions()` Configuration options
 
@@ -295,10 +307,18 @@ The outputs of `getAllVersions()` are available as JSON or CSV files generated o
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions.csv)
+    Core browsers only, with `supports` property
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array_with_supports.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object_with_supports.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_with_supports.csv)
 - Including downstream browsers
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_array.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_object.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions.csv)
+- Including downstream browsers with `supports` property
+  - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_array_with_supports.json)
+  - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_object_with_supports.json)
+  - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_with_supports.csv)
 
 These files are updated on a daily basis.
 

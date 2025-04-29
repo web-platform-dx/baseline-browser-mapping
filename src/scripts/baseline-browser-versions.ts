@@ -124,10 +124,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -140,10 +140,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -464,7 +464,7 @@ type AllVersionsOptions = {
  * - `outputFormat`: `array` (default), `object` or `csv`
  */
 export function getAllVersions(
-  userOptions?: AllVersionsOptions
+  userOptions?: AllVersionsOptions,
 ): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
   let incomingOptions = userOptions ?? {};
 
@@ -496,7 +496,7 @@ export function getAllVersions(
   const thirtyMonthsFromToday = new Date();
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
   const naMinimumVersions = getCompatibleVersions({
-    widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10)
+    widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10),
   });
 
   const naObject: versionsObject = {};
@@ -540,26 +540,27 @@ export function getAllVersions(
         subArray.forEach((version) => {
           let isWaCcompatible =
             compareVersions(version.version, waVersion) >= 0 ? true : false;
-          let isNaCompatible = compareVersions(version.version, naVersion) >= 0 ? true : false;
+          let isNaCompatible =
+            compareVersions(version.version, naVersion) >= 0 ? true : false;
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year - 1
-          }
+            year: year - 1,
+          };
 
           if (options.useSupports) {
-            let supports = 'year_only'
-            if (isWaCcompatible && isNaCompatible) supports = 'newly'
-            if (isWaCcompatible && !isNaCompatible) supports = 'widely'
+            let supports = "year_only";
+            if (isWaCcompatible && isNaCompatible) supports = "newly";
+            if (isWaCcompatible && !isNaCompatible) supports = "widely";
             versionToPush = {
               ...versionToPush,
-              supports: supports
+              supports: supports,
             };
           } else {
             versionToPush = {
               ...versionToPush,
-              wa_compatible: isWaCcompatible
-            }
+              wa_compatible: isWaCcompatible,
+            };
           }
 
           outputArray.push(versionToPush);
@@ -587,13 +588,13 @@ export function getAllVersions(
           outputArray.push({
             ...version,
             year: correspondingChromiumVersion.year,
-            supports: correspondingChromiumVersion.supports
+            supports: correspondingChromiumVersion.supports,
           });
         } else {
           outputArray.push({
             ...version,
             year: correspondingChromiumVersion.year,
-            wa_compatible: correspondingChromiumVersion.wa_compatible
+            wa_compatible: correspondingChromiumVersion.wa_compatible,
           });
         }
       }
@@ -622,12 +623,11 @@ export function getAllVersions(
         release_date: version.release_date,
         engine: version.engine,
         engine_version: version.engine_version,
-      }
+      };
       //@ts-ignore
       outputObject[version.browser][version.version] = options.useSupports
         ? { ...versionToAdd, supports: version.supports }
-        : { ...versionToAdd, wa_compatible: version.wa_compatible }
-
+        : { ...versionToAdd, wa_compatible: version.wa_compatible };
     });
 
     return outputObject ?? {};
@@ -636,7 +636,7 @@ export function getAllVersions(
   if (options.outputFormat === "csv") {
     let outputString =
       `"browser","version","year",` +
-      `"${options.useSupports ? 'supports' : 'wa_compatible'}",` +
+      `"${options.useSupports ? "supports" : "wa_compatible"}",` +
       `"release_date","engine","engine_version"`;
 
     outputArray.forEach((version) => {
@@ -660,7 +660,7 @@ export function getAllVersions(
 
       outputs = options.useSupports
         ? { ...outputs, supports: version.supports }
-        : { ...outputs, wa_compatible: version.wa_compatible }
+        : { ...outputs, wa_compatible: version.wa_compatible };
 
       outputString +=
         `\n"${outputs.browser}","` +
