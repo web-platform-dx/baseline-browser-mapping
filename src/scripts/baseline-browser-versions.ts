@@ -69,7 +69,7 @@ type BrowserVersion = {
 };
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number;
+  year: number | string;
   supports?: string;
   wa_compatible?: boolean;
 }
@@ -154,10 +154,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -170,10 +170,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -585,7 +585,7 @@ export function getAllVersions(
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year <= 2015 ? 0 : year - 1,
+            year: year <= 2015 ? "pre_baseline" : year - 1,
           };
 
           if (options.useSupports) {
@@ -642,7 +642,7 @@ export function getAllVersions(
   }
 
   outputArray.sort((a, b) => {
-    if (a.year < b.year) {
+    if (a.year < b.year || (a.year == "pre_baseline" && b.year != "pre_baseline")) {
       return -1;
     } else if (a.browser > b.browser) {
       return 1;
@@ -683,7 +683,7 @@ export function getAllVersions(
       let outputs: {
         browser: string;
         version: string;
-        year: number;
+        year: number | string;
         release_date: string;
         engine: string;
         engine_version: string;
