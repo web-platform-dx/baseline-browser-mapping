@@ -31,6 +31,10 @@ const compareVersions = (
   incomingVersionString: string,
   previousVersionString: string,
 ): number => {
+  if (incomingVersionString === previousVersionString) {
+    return 0;
+  }
+
   let [incomingVersionStringMajor, incomingVersionStringMinor] =
     incomingVersionString.split(".");
   let [previousVersionStringMajor, previousVersionStringMinor] =
@@ -46,9 +50,15 @@ const compareVersions = (
     );
   }
 
+  if (
+    parseInt(incomingVersionStringMajor) > parseInt(previousVersionStringMajor)
+  ) {
+    return 1;
+  }
+
   if (incomingVersionStringMinor) {
     if (
-      parseInt(incomingVersionStringMajor) >=
+      parseInt(incomingVersionStringMajor) ==
         parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
@@ -56,12 +66,8 @@ const compareVersions = (
     ) {
       return 1;
     }
-  } else {
-    if (incomingVersionStringMajor > previousVersionStringMajor) {
-      return 1;
-    }
   }
-  return 0;
+  return -1;
 };
 
 const findLatestVersion = (releases: {
@@ -78,7 +84,7 @@ const handleUas = (
   let somethingChanged = false;
 
   const existingData: DownstreamBrowsersData = JSON.parse(
-    readFileSync(process.cwd() + "/src/data/downstream-browsers.json", {
+    readFileSync(process.cwd() + "/static/downstream-browsers.json", {
       encoding: "utf8",
     }),
   );
@@ -130,9 +136,9 @@ const handleUas = (
             compareVersions(
               browserVersion,
               browser.latestExistingVersion?.[0] ?? "",
-            ) &&
-            parseFloat(chromiumVersion) >=
-              parseFloat(
+            ) === 1 &&
+            parseInt(chromiumVersion) >=
+              parseInt(
                 browser.latestExistingVersion?.[1].engine_version ?? "",
               ) &&
             !Object.keys(existingData.browsers[browserName].releases).includes(
@@ -193,25 +199,31 @@ if (process.argv.length === 2) {
       res.on("end", () => {
         latestUas = JSON.parse(Buffer.concat(output).toString());
         let [willWrite, fileOutput] = handleUas(latestUas);
+        Object.keys(fileOutput.browsers).forEach((browserName) => {
+          const releases = fileOutput.browsers[browserName].releases;
+          const sortedReleases = Object.entries(releases)
+            .sort((a, b) => compareVersions(a[0], b[0]))
+            .reduce(
+              (acc, [version, release]) => {
+                acc[version] = release;
+                return acc;
+              },
+              {} as { [version: string]: BrowserRelease },
+            );
+          fileOutput.browsers[browserName].releases = sortedReleases;
+        });
         if (willWrite) {
           fileOutput.lastUpdated = new Date().toISOString();
+          writeFileSync(
+            process.cwd() + "/static/downstream-browsers.json",
+            JSON.stringify(fileOutput, null, 2),
+            { flag: "w" },
+          );
           writeFileSync(
             process.cwd() + "/src/data/downstream-browsers.json",
             JSON.stringify(fileOutput, null, 2),
             { flag: "w" },
           );
-
-          // let packageJson = JSON.parse(
-          //   readFileSync(process.cwd() + "/package.json", { encoding: "utf8" }),
-          // );
-          // let currentVersion = packageJson.version.split(".");
-          // currentVersion[2]++;
-          // packageJson.version = currentVersion.join(".");
-          // writeFileSync(
-          //   process.cwd() + "/package.json",
-          //   JSON.stringify(packageJson, null, 2),
-          //   { encoding: "utf8" },
-          // );
         } else {
           console.log("no updates at this time");
         }

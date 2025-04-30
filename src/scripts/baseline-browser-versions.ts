@@ -1,9 +1,14 @@
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
+const bcdBrowsers = await fetch(
+  "https://unpkg.com/@mdn/browser-compat-data",
+).then((response) => response.json());
 
-const bcdBrowsers = require("@mdn/browser-compat-data");
-const otherBrowsers = require("../data/downstream-browsers.json");
-import { features } from "web-features";
+const features = await fetch("https://unpkg.com/web-features/data.json")
+  .then((response) => response.json())
+  .then((data) => data.features);
+
+const otherBrowsers = await fetch(
+  "https://unpkg.com/baseline-browser-mapping/dist/data/downstream-browsers.json",
+).then((response) => response.json());
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -14,6 +19,23 @@ const bcdCoreBrowserNames: string[] = [
   "safari",
   "safari_ios",
 ];
+
+type WebFeature = {
+  compat_features: string[];
+  description: string;
+  description_html: string;
+  group: string;
+  name: string;
+  spec: string;
+  status: {
+    baseline: string;
+    baseline_low_date?: string;
+    baseline_hight_date?: string;
+    support: object;
+  };
+};
+
+type Features = WebFeature[];
 
 type BrowserData = {
   [key: string]: {
@@ -47,7 +69,7 @@ type BrowserVersion = {
 };
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number;
+  year: number | string;
   supports?: string;
   wa_compatible?: boolean;
 }
@@ -96,7 +118,15 @@ const downstreamBrowserData: [string, Browser][] = [
   ][]),
 ];
 
-const acceptableStatuses: string[] = ["current", "esr", "retired", "unknown"];
+const acceptableStatuses: string[] = [
+  "current",
+  "esr",
+  "retired",
+  "unknown",
+  "beta",
+  "nightly",
+];
+let suppressPre2016Warning: boolean = false;
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -124,10 +154,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -140,10 +170,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -153,7 +183,7 @@ const compareVersions = (
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
   const compatibleFeatures = new Array();
-  Object.entries(features).forEach(([feature_id, feature]) => {
+  Object.entries(features as WebFeature[]).forEach(([feature_id, feature]) => {
     if (
       feature.status.baseline_low_date &&
       new Date(feature.status.baseline_low_date) <= date
@@ -251,9 +281,17 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2016) {
+  if (date.getFullYear() < 2016 && !suppressPre2016Warning) {
+    console.warn(
+      new Error(
+        "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
+      ),
+    );
+  }
+
+  if (date.getFullYear() < 2002) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before 2016",
+      "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
     );
   }
 
@@ -388,6 +426,8 @@ type Options = {
  * - `targetYear`: year in format `YYYY`
  */
 export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
+  suppressPre2016Warning = true;
+
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -477,7 +517,7 @@ export function getAllVersions(
 
   let nextYear = new Date().getFullYear() + 1;
 
-  const yearArray = [...Array(nextYear).keys()].slice(2016);
+  const yearArray = [...Array(nextYear).keys()].slice(2002);
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
@@ -505,7 +545,7 @@ export function getAllVersions(
   });
 
   const allVersions = getCompatibleVersions({
-    targetYear: 2016,
+    targetYear: 2002,
     listAllCompatibleVersions: true,
   });
 
@@ -545,7 +585,7 @@ export function getAllVersions(
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year - 1,
+            year: year <= 2015 ? "pre_baseline" : year - 1,
           };
 
           if (options.useSupports) {
@@ -602,7 +642,7 @@ export function getAllVersions(
   }
 
   outputArray.sort((a, b) => {
-    if (a.year < b.year) {
+    if (a.year < b.year || (a.year == "pre_baseline" && b.year != "pre_baseline")) {
       return -1;
     } else if (a.browser > b.browser) {
       return 1;
@@ -643,7 +683,7 @@ export function getAllVersions(
       let outputs: {
         browser: string;
         version: string;
-        year: number;
+        year: number | string;
         release_date: string;
         engine: string;
         engine_version: string;
