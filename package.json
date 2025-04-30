@@ -20,10 +20,6 @@
     "refresh-static": "npx tsx scripts/refresh-static.ts"
   },
   "license": "Apache-2.0",
-  "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.9",
-    "web-features": "^2.34.1"
-  },
   "devDependencies": {
     "@types/node": "^22.15.3",
     "prettier": "^3.5.3",

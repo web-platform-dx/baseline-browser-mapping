@@ -43,10 +43,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -59,10 +59,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -84,7 +84,7 @@ const handleUas = (
   let somethingChanged = false;
 
   const existingData: DownstreamBrowsersData = JSON.parse(
-    readFileSync(process.cwd() + "/src/data/downstream-browsers.json", {
+    readFileSync(process.cwd() + "/static/downstream-browsers.json", {
       encoding: "utf8",
     }),
   );
@@ -138,9 +138,9 @@ const handleUas = (
               browser.latestExistingVersion?.[0] ?? "",
             ) === 1 &&
             parseInt(chromiumVersion) >=
-            parseInt(
-              browser.latestExistingVersion?.[1].engine_version ?? "",
-            ) &&
+              parseInt(
+                browser.latestExistingVersion?.[1].engine_version ?? "",
+              ) &&
             !Object.keys(existingData.browsers[browserName].releases).includes(
               browserVersion.toString(),
             )
@@ -203,14 +203,22 @@ if (process.argv.length === 2) {
           const releases = fileOutput.browsers[browserName].releases;
           const sortedReleases = Object.entries(releases)
             .sort((a, b) => compareVersions(a[0], b[0]))
-            .reduce((acc, [version, release]) => {
-              acc[version] = release;
-              return acc;
-            }, {} as { [version: string]: BrowserRelease });
+            .reduce(
+              (acc, [version, release]) => {
+                acc[version] = release;
+                return acc;
+              },
+              {} as { [version: string]: BrowserRelease },
+            );
           fileOutput.browsers[browserName].releases = sortedReleases;
         });
         if (willWrite) {
           fileOutput.lastUpdated = new Date().toISOString();
+          writeFileSync(
+            process.cwd() + "/static/downstream-browsers.json",
+            JSON.stringify(fileOutput, null, 2),
+            { flag: "w" },
+          );
           writeFileSync(
             process.cwd() + "/src/data/downstream-browsers.json",
             JSON.stringify(fileOutput, null, 2),
