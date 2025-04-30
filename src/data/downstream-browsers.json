@@ -652,6 +652,24 @@
           "engine_version": "130",
           "status": "unknown",
           "release_date": "2024-11-30"
+        },
+        "25.2": {
+          "engine": "Blink",
+          "engine_version": "132",
+          "status": "unknown",
+          "release_date": "2025-04-24"
+        },
+        "25.3": {
+          "engine": "Blink",
+          "engine_version": "132",
+          "status": "unknown",
+          "release_date": "2025-04-23"
+        },
+        "25.4": {
+          "engine": "Blink",
+          "engine_version": "134",
+          "status": "unknown",
+          "release_date": "2025-04-23"
         }
       }
     },
@@ -1504,5 +1522,5 @@
       }
     }
   },
-  "lastUpdated": "2025-04-09T14:12:33.205Z"
+  "lastUpdated": "2025-04-30T13:39:11.054Z"
 }
