@@ -1,9 +1,14 @@
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
+const bcdBrowsers = await fetch(
+  "https://unpkg.com/@mdn/browser-compat-data",
+).then((response) => response.json());
 
-const bcdBrowsers = require("@mdn/browser-compat-data");
-const otherBrowsers = require("../data/downstream-browsers.json");
-import { features } from "web-features";
+const features = await fetch("https://unpkg.com/web-features/data.json")
+  .then((response) => response.json())
+  .then((data) => data.features);
+
+const otherBrowsers = await fetch(
+  "https://unpkg.com/baseline-browser-mapping/dist/data/downstream-browsers.json",
+).then((response) => response.json());
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -14,6 +19,23 @@ const bcdCoreBrowserNames: string[] = [
   "safari",
   "safari_ios",
 ];
+
+type WebFeature = {
+  compat_features: string[];
+  description: string;
+  description_html: string;
+  group: string;
+  name: string;
+  spec: string;
+  status: {
+    baseline: string;
+    baseline_low_date?: string;
+    baseline_hight_date?: string;
+    support: object;
+  };
+};
+
+type Features = WebFeature[];
 
 type BrowserData = {
   [key: string]: {
@@ -132,10 +154,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -148,10 +170,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -161,7 +183,7 @@ const compareVersions = (
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
   const compatibleFeatures = new Array();
-  Object.entries(features).forEach(([feature_id, feature]) => {
+  Object.entries(features as WebFeature[]).forEach(([feature_id, feature]) => {
     if (
       feature.status.baseline_low_date &&
       new Date(feature.status.baseline_low_date) <= date
@@ -563,7 +585,7 @@ export function getAllVersions(
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year - 1,
+            year: year <= 2015 ? 0 : year - 1,
           };
 
           if (options.useSupports) {
