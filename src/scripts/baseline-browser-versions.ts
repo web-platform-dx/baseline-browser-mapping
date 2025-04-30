@@ -96,7 +96,15 @@ const downstreamBrowserData: [string, Browser][] = [
   ][]),
 ];
 
-const acceptableStatuses: string[] = ["current", "esr", "retired", "unknown"];
+const acceptableStatuses: string[] = [
+  "current",
+  "esr",
+  "retired",
+  "unknown",
+  "beta",
+  "nightly",
+];
+let suppressPre2016Warning: boolean = false;
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -251,9 +259,17 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2016) {
+  if (date.getFullYear() < 2016 && !suppressPre2016Warning) {
+    console.warn(
+      new Error(
+        "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
+      ),
+    );
+  }
+
+  if (date.getFullYear() < 2002) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before 2016",
+      "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
     );
   }
 
@@ -388,6 +404,8 @@ type Options = {
  * - `targetYear`: year in format `YYYY`
  */
 export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
+  suppressPre2016Warning = true;
+
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -477,7 +495,7 @@ export function getAllVersions(
 
   let nextYear = new Date().getFullYear() + 1;
 
-  const yearArray = [...Array(nextYear).keys()].slice(2016);
+  const yearArray = [...Array(nextYear).keys()].slice(2002);
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
@@ -505,7 +523,7 @@ export function getAllVersions(
   });
 
   const allVersions = getCompatibleVersions({
-    targetYear: 2016,
+    targetYear: 2002,
     listAllCompatibleVersions: true,
   });
 
