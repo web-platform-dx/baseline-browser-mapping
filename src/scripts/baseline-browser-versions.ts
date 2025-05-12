@@ -132,10 +132,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -148,10 +148,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -567,13 +567,8 @@ export function getAllVersions(
           };
 
           if (options.useSupports) {
-            let supports = "year_only";
-            if (isWaCcompatible && isNaCompatible) supports = "newly";
-            if (isWaCcompatible && !isNaCompatible) supports = "widely";
-            versionToPush = {
-              ...versionToPush,
-              supports: supports,
-            };
+            if (isWaCcompatible) versionToPush.supports = "widely";
+            if (isNaCompatible) versionToPush.supports = "newly";
           } else {
             versionToPush = {
               ...versionToPush,
@@ -661,10 +656,19 @@ export function getAllVersions(
         engine: version.engine,
         engine_version: version.engine_version,
       };
-      //@ts-ignore
-      outputObject[version.browser][version.version] = options.useSupports
-        ? { ...versionToAdd, supports: version.supports }
-        : { ...versionToAdd, wa_compatible: version.wa_compatible };
+
+      if (options.useSupports) {
+        //@ts-ignore
+        outputObject[version.browser][version.version] = version.supports
+          ? { ...versionToAdd, supports: version.supports }
+          : versionToAdd;
+      } else {
+        //@ts-ignores
+        outputObject[version.browser][version.version] = {
+          ...versionToAdd,
+          wa_compatible: version.wa_compatible,
+        };
+      }
     });
 
     return outputObject ?? {};
@@ -696,7 +700,7 @@ export function getAllVersions(
       };
 
       outputs = options.useSupports
-        ? { ...outputs, supports: version.supports }
+        ? { ...outputs, supports: version.supports ?? "" }
         : { ...outputs, wa_compatible: version.wa_compatible };
 
       outputString +=
