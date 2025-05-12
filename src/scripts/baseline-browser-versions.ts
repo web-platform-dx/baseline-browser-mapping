@@ -47,7 +47,7 @@ type BrowserVersion = {
 };
 
 interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number;
+  year: number | string;
   supports?: string;
   wa_compatible?: boolean;
 }
@@ -96,7 +96,15 @@ const downstreamBrowserData: [string, Browser][] = [
   ][]),
 ];
 
-const acceptableStatuses: string[] = ["current", "esr", "retired", "unknown"];
+const acceptableStatuses: string[] = [
+  "current",
+  "esr",
+  "retired",
+  "unknown",
+  "beta",
+  "nightly",
+];
+let suppressPre2015Warning: boolean = false;
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -251,9 +259,17 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2016) {
+  if (date.getFullYear() < 2015 && !suppressPre2015Warning) {
+    console.warn(
+      new Error(
+        "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
+      ),
+    );
+  }
+
+  if (date.getFullYear() < 2002) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before 2016",
+      "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
     );
   }
 
@@ -371,7 +387,7 @@ type Options = {
    */
   widelyAvailableOnDate?: string | number;
   /**
-   * Pass a year between 2016 and the current year to get browser versions compatible with all
+   * Pass a year between 2015 and the current year to get browser versions compatible with all
    * Newly Available features as of the end of the year specified.
    * > NOTE: cannot be used with `widelyAvailableOnDate`.
    */
@@ -466,6 +482,8 @@ type AllVersionsOptions = {
 export function getAllVersions(
   userOptions?: AllVersionsOptions,
 ): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
+  suppressPre2015Warning = true;
+
   let incomingOptions = userOptions ?? {};
 
   let options: AllVersionsOptions = {
@@ -477,7 +495,7 @@ export function getAllVersions(
 
   let nextYear = new Date().getFullYear() + 1;
 
-  const yearArray = [...Array(nextYear).keys()].slice(2016);
+  const yearArray = [...Array(nextYear).keys()].slice(2002);
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
@@ -505,7 +523,7 @@ export function getAllVersions(
   });
 
   const allVersions = getCompatibleVersions({
-    targetYear: 2016,
+    targetYear: 2002,
     listAllCompatibleVersions: true,
   });
 
@@ -545,17 +563,12 @@ export function getAllVersions(
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
-            year: year - 1,
+            year: year <= 2015 ? "pre_baseline" : year - 1,
           };
 
           if (options.useSupports) {
-            let supports = "year_only";
-            if (isWaCcompatible && isNaCompatible) supports = "newly";
-            if (isWaCcompatible && !isNaCompatible) supports = "widely";
-            versionToPush = {
-              ...versionToPush,
-              supports: supports,
-            };
+            if (isWaCcompatible) versionToPush.supports = "widely";
+            if (isNaCompatible) versionToPush.supports = "newly";
           } else {
             versionToPush = {
               ...versionToPush,
@@ -602,13 +615,32 @@ export function getAllVersions(
   }
 
   outputArray.sort((a, b) => {
-    if (a.year < b.year) {
+    // Sort by year: "pre_baseline" first, then numerical year in ascending order
+    if (a.year === "pre_baseline" && b.year !== "pre_baseline") {
       return -1;
-    } else if (a.browser > b.browser) {
-      return 1;
-    } else {
-      return compareVersions(a.version, b.version);
     }
+    if (b.year === "pre_baseline" && a.year !== "pre_baseline") {
+      return 1;
+    }
+    if (a.year !== "pre_baseline" && b.year !== "pre_baseline") {
+      if (a.year < b.year) {
+        return -1;
+      }
+      if (a.year > b.year) {
+        return 1;
+      }
+    }
+
+    // Sort by browser alphabetically
+    if (a.browser < b.browser) {
+      return -1;
+    }
+    if (a.browser > b.browser) {
+      return 1;
+    }
+
+    // Sort by version using compareVersions
+    return compareVersions(a.version, b.version);
   });
 
   if (options.outputFormat === "object") {
@@ -624,10 +656,19 @@ export function getAllVersions(
         engine: version.engine,
         engine_version: version.engine_version,
       };
-      //@ts-ignore
-      outputObject[version.browser][version.version] = options.useSupports
-        ? { ...versionToAdd, supports: version.supports }
-        : { ...versionToAdd, wa_compatible: version.wa_compatible };
+
+      if (options.useSupports) {
+        //@ts-ignore
+        outputObject[version.browser][version.version] = version.supports
+          ? { ...versionToAdd, supports: version.supports }
+          : versionToAdd;
+      } else {
+        //@ts-ignores
+        outputObject[version.browser][version.version] = {
+          ...versionToAdd,
+          wa_compatible: version.wa_compatible,
+        };
+      }
     });
 
     return outputObject ?? {};
@@ -643,7 +684,7 @@ export function getAllVersions(
       let outputs: {
         browser: string;
         version: string;
-        year: number;
+        year: number | string;
         release_date: string;
         engine: string;
         engine_version: string;
@@ -659,7 +700,7 @@ export function getAllVersions(
       };
 
       outputs = options.useSupports
-        ? { ...outputs, supports: version.supports }
+        ? { ...outputs, supports: version.supports ?? "" }
         : { ...outputs, wa_compatible: version.wa_compatible };
 
       outputString +=
