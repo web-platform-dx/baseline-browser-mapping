@@ -21,9 +21,11 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.17",
     "prettier": "^3.5.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "@mdn/browser-compat-data": "^6.0.13",
+    "web-features": "^2.34.2"
   },
   "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
 }

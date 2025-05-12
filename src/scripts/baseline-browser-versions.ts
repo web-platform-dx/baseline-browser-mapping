@@ -1,14 +1,9 @@
-const bcdBrowsers = await fetch(
-  "https://unpkg.com/@mdn/browser-compat-data",
-).then((response) => response.json());
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 
-const features = await fetch("https://unpkg.com/web-features/data.json")
-  .then((response) => response.json())
-  .then((data) => data.features);
-
-const otherBrowsers = await fetch(
-  "https://unpkg.com/baseline-browser-mapping/dist/data/downstream-browsers.json",
-).then((response) => response.json());
+const bcdBrowsers = require("@mdn/browser-compat-data");
+const otherBrowsers = require("../data/downstream-browsers.json");
+import { features } from "web-features";
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -19,23 +14,6 @@ const bcdCoreBrowserNames: string[] = [
   "safari",
   "safari_ios",
 ];
-
-type WebFeature = {
-  compat_features: string[];
-  description: string;
-  description_html: string;
-  group: string;
-  name: string;
-  spec: string;
-  status: {
-    baseline: string;
-    baseline_low_date?: string;
-    baseline_hight_date?: string;
-    support: object;
-  };
-};
-
-type Features = WebFeature[];
 
 type BrowserData = {
   [key: string]: {
@@ -126,7 +104,7 @@ const acceptableStatuses: string[] = [
   "beta",
   "nightly",
 ];
-let suppressPre2016Warning: boolean = false;
+let suppressPre2015Warning: boolean = false;
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -183,7 +161,7 @@ const compareVersions = (
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
   const compatibleFeatures = new Array();
-  Object.entries(features as WebFeature[]).forEach(([feature_id, feature]) => {
+  Object.entries(features).forEach(([feature_id, feature]) => {
     if (
       feature.status.baseline_low_date &&
       new Date(feature.status.baseline_low_date) <= date
@@ -281,7 +259,7 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2016 && !suppressPre2016Warning) {
+  if (date.getFullYear() < 2015 && !suppressPre2015Warning) {
     console.warn(
       new Error(
         "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
@@ -409,7 +387,7 @@ type Options = {
    */
   widelyAvailableOnDate?: string | number;
   /**
-   * Pass a year between 2016 and the current year to get browser versions compatible with all
+   * Pass a year between 2015 and the current year to get browser versions compatible with all
    * Newly Available features as of the end of the year specified.
    * > NOTE: cannot be used with `widelyAvailableOnDate`.
    */
@@ -426,8 +404,6 @@ type Options = {
  * - `targetYear`: year in format `YYYY`
  */
 export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
-  suppressPre2016Warning = true;
-
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -506,6 +482,8 @@ type AllVersionsOptions = {
 export function getAllVersions(
   userOptions?: AllVersionsOptions,
 ): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
+  suppressPre2015Warning = true;
+
   let incomingOptions = userOptions ?? {};
 
   let options: AllVersionsOptions = {
@@ -642,13 +620,32 @@ export function getAllVersions(
   }
 
   outputArray.sort((a, b) => {
-    if (a.year < b.year || (a.year == "pre_baseline" && b.year != "pre_baseline")) {
+    // Sort by year: "pre_baseline" first, then numerical year in ascending order
+    if (a.year === "pre_baseline" && b.year !== "pre_baseline") {
       return -1;
-    } else if (a.browser > b.browser) {
-      return 1;
-    } else {
-      return compareVersions(a.version, b.version);
     }
+    if (b.year === "pre_baseline" && a.year !== "pre_baseline") {
+      return 1;
+    }
+    if (a.year !== "pre_baseline" && b.year !== "pre_baseline") {
+      if (a.year < b.year) {
+        return -1;
+      }
+      if (a.year > b.year) {
+        return 1;
+      }
+    }
+
+    // Sort by browser alphabetically
+    if (a.browser < b.browser) {
+      return -1;
+    }
+    if (a.browser > b.browser) {
+      return 1;
+    }
+
+    // Sort by version using compareVersions
+    return compareVersions(a.version, b.version);
   });
 
   if (options.outputFormat === "object") {
