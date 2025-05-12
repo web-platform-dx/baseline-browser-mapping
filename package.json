@@ -20,12 +20,14 @@
     "refresh-static": "npx tsx scripts/refresh-static.ts"
   },
   "license": "Apache-2.0",
+  "dependencies": {
+    "@mdn/browser-compat-data": "^6.0.13",
+    "web-features": "^2.34.2"
+  },
   "devDependencies": {
     "@types/node": "^22.15.17",
     "prettier": "^3.5.3",
-    "typescript": "^5.7.2",
-    "@mdn/browser-compat-data": "^6.0.13",
-    "web-features": "^2.34.2"
+    "typescript": "^5.7.2"
   },
   "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
 }
