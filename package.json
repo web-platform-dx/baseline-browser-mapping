@@ -21,8 +21,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.13",
-    "web-features": "^2.34.2"
+    "@mdn/browser-compat-data": "^6.0.14",
+    "web-features": "^2.35.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
