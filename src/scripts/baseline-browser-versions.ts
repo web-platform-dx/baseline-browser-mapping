@@ -160,21 +160,20 @@ const compareVersions = (
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
-  const compatibleFeatures = new Array();
-  Object.entries(features).forEach(([feature_id, feature]) => {
-    if (
-      feature.status.baseline_low_date &&
-      new Date(feature.status.baseline_low_date) <= date
-    ) {
-      compatibleFeatures.push({
+  return Object.entries(features)
+    .filter(
+      ([feature_id, feature]) =>
+        feature.status.baseline_low_date &&
+        new Date(feature.status.baseline_low_date) <= date,
+    )
+    .map(([feature_id, feature]) => {
+      return {
         id: feature_id,
         name: feature.name,
-        baseline_low_date: feature.status.baseline_low_date,
+        baseline_low_date: feature.status.baseline_low_date as string,
         support: feature.status.support,
-      });
-    }
-  });
-  return compatibleFeatures;
+      };
+    });
 };
 
 const getMinimumVersionsFromFeatures = (
