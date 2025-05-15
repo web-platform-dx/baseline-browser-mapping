@@ -25,6 +25,9 @@ jobs:
       - name: Install environment
         run: npm ci
 
+      - name: Install environment
+        run: npm i web-features@latest @mdn/browser-compat-data@latest
+
       - name: Run refresh-downstream.ts
         id: refresh-downstream-script
         run: |
