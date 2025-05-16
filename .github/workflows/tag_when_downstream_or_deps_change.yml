@@ -1,0 +1,64 @@
+name: Tag on Dependency or Data Update
+
+on:
+  schedule:
+    - cron: '0 15 * * *' # Every day at 15:00 UTC
+
+jobs:
+  tag-if-updated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch all history for git log
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for changes to downstream-browser.json in last 24h
+        id: check_downstream
+        run: |
+          if git log --since="24 hours ago" --pretty=format: --name-only | grep -q '^src/data/downstream-browser.json$'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for merged Dependabot PRs in last 24h
+        id: check_dependabot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          merged=$(gh pr list --state merged --search "is:pr merged:>=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ) author:app/dependabot" --json number --jq 'length')
+          if [ "$merged" -gt 0 ]; then
+            echo "merged=true" >> $GITHUB_OUTPUT
+          else
+            echo "merged=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version and push tag if needed
+        if: steps.check_downstream.outputs.changed == 'true' && steps.check_dependabot.outputs.merged == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version patch -m "chore: bump version to %s because downstream and dependencies changed [skip ci]"
+          git push origin main --follow-tags
+        
+      - name: Bump version and push tag if needed
+        if: steps.check_downstream.outputs.changed == 'true' && !steps.check_dependabot.outputs.merged == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version patch -m "chore: bump version to %s because downstream changed [skip ci]"
+          git push origin main --follow-tags
+
+      - name: Bump version and push tag if needed
+        if:  steps.check_dependabot.outputs.merged == 'true' && !steps.check_downstream.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version patch -m "chore: bump version to %s because dependencies changed[skip ci]"
+          git push origin main --follow-tags

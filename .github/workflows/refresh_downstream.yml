@@ -47,9 +47,9 @@ jobs:
           git commit -m 'Updating downstream-browsers'
           git push origin main
 
-      - name: Tag release for publishing
-        if: steps.push-to-main.outcome == 'success'
-        id: tag-release
-        run: |
-          npm version patch -m "Patch to %s because downstream-browsers.json changed"
-          git push && git push --tags
+      # - name: Tag release for publishing
+      #   if: steps.push-to-main.outcome == 'success'
+      #   id: tag-release
+      #   run: |
+      #     npm version patch -m "Patch to %s because downstream-browsers.json changed"
+      #     git push && git push --tags
