@@ -17,11 +17,11 @@ To install the package, run:
 
 `npm install --save baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. It is strongly recommended that you update this module and it's dependencies often to ensure you have the most accurate data. Consider adding a script to your `package.json` and using it as a build step:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently.  Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
 
 ```javascript
 "scripts": [
-  "refresh-baseline-browser-mapping": "npm i --save baseline-browser-mapping@latest web-features@latest @mdn/browser-compat-data@latest"
+  "refresh-baseline-browser-mapping": "npm i --save baseline-browser-mapping@latest"
 ]
 ```
 
@@ -133,7 +133,7 @@ Setting `includeDownstreamBrowsers` to `true` will include browsers outside of t
 
 ```javascript
 getCompatibleVersions({
-  widelyAvailableOnDate: `2023-04-05`,
+  includeDownstreamBrowsers: true,
 });
 ```
 
@@ -175,6 +175,8 @@ By default, this function returns an `Array` of `Objects` and excludes downstrea
 ]
 ```
 
+For browser versions in `@mdn/browser-compat-data` that were released before Baseline can be defined, i.e. Baseline 2015, the `year` property is always the string: `"pre_baseline"`.
+
 ### Understanding which browsers support Newly available features
 
 You may want to understand which recent browser versions support all Newly available features. You can replace the `wa_compatible` property with a `supports` property using the `useSupport` option:
@@ -185,13 +187,12 @@ getAllVersions({
 });
 ```
 
-The `supports` property has three possible values:
+The `supports` property is optional and has two possible values:
 
-- `year_only` for browser versions that do not support all Baseline Widely available Newly Available features.
 - `widely` for browser versions that support all Widely available features.
 - `newly` for browser versions that support all Newly available features.
 
-Browser versions that support all Newly available features also support all Widely available features.
+Browser versions that do not support Widely or Newly available will not include the `support` property in the `array` or `object` outputs, and in the CSV output, the `support` column will contain an empty string. Browser versions that support all Newly available features also support all Widely available features.
 
 ### `getAllVersions()` Configuration options
 
@@ -251,7 +252,6 @@ In thise case, `getAllVersions()` returns a nested object with the browser [IDs 
   "chrome": {
     "53": {
       "year": 2016,
-      "supports": "year_only",
       "release_date": "2016-09-07"
     },
     ...
@@ -266,7 +266,6 @@ Downstream browsers will include extra fields for `engine` and `engine_versions`
   "webview_android": {
     "53": {
       "year": 2016,
-      "supports": "year_only",
       "release_date": "2016-09-07",
       "engine": "Blink",
       "engine_version": "53"
@@ -287,7 +286,10 @@ getAllVersions({
 
 ```csv
 "browser","version","year","supports","release_date","engine","engine_version"
-"chrome","53","2016","year_only","2016-09-07","NULL","NULL"
+...
+"chrome","24","pre_baseline","","2013-01-10","NULL","NULL"
+...
+"chrome","53","2016","","2016-09-07","NULL","NULL"
 ...
 "firefox","135","2024","widely","2025-02-04","NULL","NULL"
 "firefox","136","2024","newly","2025-03-04","NULL","NULL"
@@ -307,7 +309,7 @@ The outputs of `getAllVersions()` are available as JSON or CSV files generated o
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions.csv)
-    Core browsers only, with `supports` property
+- Core browsers only, with `supports` property
   - [Array](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_array_with_supports.json)
   - [Object](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_object_with_supports.json)
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/all_versions_with_supports.csv)
