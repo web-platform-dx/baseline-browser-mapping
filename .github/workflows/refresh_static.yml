@@ -25,7 +25,7 @@ jobs:
       - name: Install environment
         run: npm ci
 
-      - name: Run refresh-downstream.ts
+      - name: Run refresh-static.ts
         id: refresh-downstream-script
         run: |
           npm run refresh-static
