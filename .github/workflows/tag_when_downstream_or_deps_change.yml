@@ -2,7 +2,7 @@ name: Tag on Dependency or Data Update
 
 on:
   schedule:
-    - cron: '0 15 * * *' # Every day at 15:00 UTC
+    - cron: "0 15 * * *" # Every day at 15:00 UTC
 
 jobs:
   tag-if-updated:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Check for changes to downstream-browser.json in last 24h
         id: check_downstream
@@ -46,7 +46,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           npm version patch -m "chore: bump version to %s because downstream and dependencies changed [skip ci]"
           git push origin main --follow-tags
-        
+
       - name: Bump version and push tag if needed
         if: steps.check_downstream.outputs.changed == 'true' && !steps.check_dependabot.outputs.merged == 'true'
         run: |
@@ -56,7 +56,7 @@ jobs:
           git push origin main --follow-tags
 
       - name: Bump version and push tag if needed
-        if:  steps.check_dependabot.outputs.merged == 'true' && !steps.check_downstream.outputs.changed == 'true'
+        if: steps.check_dependabot.outputs.merged == 'true' && !steps.check_downstream.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

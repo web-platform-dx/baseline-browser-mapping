@@ -17,7 +17,7 @@ To install the package, run:
 
 `npm install --save baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently.  Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
 
 ```javascript
 "scripts": [
