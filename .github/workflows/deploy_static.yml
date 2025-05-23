@@ -4,7 +4,8 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch and with changes in the static folder
   push:
-    branches: ["main"]
+    branches: 
+      - "main"
     paths:
       - static/**
 
