@@ -1,6 +1,7 @@
 name: Tag on Dependency or Data Update
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 15 * * *" # Every day at 15:00 UTC
 
