@@ -3,3 +3,5 @@ dist/
 package/
 baseline-browser-mapping-*.tgz
 .DS_Store
+.idx/
+.vscode/

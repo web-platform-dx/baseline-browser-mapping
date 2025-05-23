@@ -22,9 +22,9 @@ jobs:
         id: check_downstream
         run: |
           if git log --since="24 hours ago" --pretty=format: --name-only | grep -q '^src/data/downstream-browser.json$'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "changed=true" && echo "changed=true" >> $GITHUB_OUTPUT
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" && echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check for merged Dependabot PRs in last 24h
@@ -34,9 +34,9 @@ jobs:
         run: |
           merged=$(gh pr list --state merged --search "is:pr merged:>=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ) author:app/dependabot" --json number --jq 'length')
           if [ "$merged" -gt 0 ]; then
-            echo "merged=true" >> $GITHUB_OUTPUT
+            echo "merged=true" && echo "merged=true" >> $GITHUB_OUTPUT
           else
-            echo "merged=false" >> $GITHUB_OUTPUT
+            echo "merged=false" && echo "merged=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Bump version and push tag if needed
