@@ -49,7 +49,7 @@ jobs:
           git push origin main --follow-tags
 
       - name: Bump version and push tag if needed
-        if: steps.check_downstream.outputs.changed == 'true' && !steps.check_dependabot.outputs.merged == 'true'
+        if: steps.check_downstream.outputs.changed == 'true' && steps.check_dependabot.outputs.merged == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -57,7 +57,7 @@ jobs:
           git push origin main --follow-tags
 
       - name: Bump version and push tag if needed
-        if: steps.check_dependabot.outputs.merged == 'true' && !steps.check_downstream.outputs.changed == 'true'
+        if: steps.check_dependabot.outputs.merged == 'true' && steps.check_downstream.outputs.changed == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
