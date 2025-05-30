@@ -7,15 +7,17 @@ You can use `baseline-browser-mapping` to help you determine minimum browser ver
 
 ## Prerequisites
 
-To use this package, you'll need:
+To use this package locally, you'll need:
 
 - Node.js (a supported [current, active LTS, or maintenance LTS release](https://nodejs.org/en/about/previous-releases))
 
+To use this package in a browser, the browser will need to support ES6 modules. ES6 modules have been Baseline Widely available since May 2018.
+
 ## Install
 
-To install the package, run:
+To install the package to your project, run:
 
-`npm install --save baseline-browser-mapping`
+`npm install --save baseline-browser-mapping -D`
 
 `baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
 
@@ -30,10 +32,20 @@ To install the package, run:
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
 ```javascript
+// If you are using the module locally and can't guarantee a network connection
 import { getCompatibleVersions } from "baseline-browser-mapping";
+
+// If you are using the module with a front-end framework that handles module resolution
+import { getCompatibleVersions } from "baseline-browser-mapping/fetch";
+
+// If you are using the module in a browser, you can use a CDN like jsdelivr
+import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping/dist/baseline-browser-mapping.js";
 
 getCompatibleVersions();
 ```
+
+> [!NOTE]:
+> The `/fetch` and CDN hosted versions of this module load data from `web-features`, `@mdn/browser-compat-data` and this module's [`downstream browser data`](#downstream-browsers) dynamically from jsdeliver.net using the `fetch()` method. These approaches ensure the most up to date information possible, but they also require an active network connection. You may see occasional discrepancies between the data returned by `/fetch`/CDN versions of this module and the local-only version if the data dependencies of the local-only version are not up to date.
 
 Executed on 7th March 2025, the above code returns the following browser versions:
 
