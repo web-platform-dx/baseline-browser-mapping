@@ -7,9 +7,11 @@ You can use `baseline-browser-mapping` to help you determine minimum browser ver
 
 ## Prerequisites
 
-To use this package, you'll need:
+To use this package locally, you'll need:
 
 - Node.js (a supported [current, active LTS, or maintenance LTS release](https://nodejs.org/en/about/previous-releases))
+
+To use this package in a browser, the browser will need to support ES6 modules. ES6 modules have been Baseline since May 2018.
 
 ## Install
 
@@ -23,6 +25,17 @@ To install the package, run:
 "scripts": [
   "refresh-baseline-browser-mapping": "npm i --save baseline-browser-mapping@latest"
 ]
+```
+
+## Use in the browser
+
+To use this module in the browser, you can configure your web server or bundler to include the `index.js` file from your `node_modules` directory, or you can load the module from a CDN:
+
+```html
+<script type="module">
+  import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping/dist/index.js";
+  console.log(getCompatibleVersions()); // returns an array of minimum Baseline Widely availble browser versions
+</script>
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
