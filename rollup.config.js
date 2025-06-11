@@ -12,6 +12,7 @@ const [bcdBrowsers, otherBrowsers, webFeatures] = await Promise.all(urls.map(asy
 const features = webFeatures.features;`;
 
 export default [
+  // Default export for node.js contexts
   {
     input: "src/index.ts",
     output: {
@@ -31,6 +32,7 @@ export default [
       }),
     ],
   },
+  // Fetch version that loads from web
   {
     input: "src/scripts/baseline-browser-versions.ts",
     output: {
@@ -38,6 +40,7 @@ export default [
       file: "dist/baseline-browser-mapping.js",
     },
     plugins: [
+      // Remove all the import statements that won't work in browser contexts
       modify({
         find: 'import { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);\n',
         replace: "",
@@ -50,6 +53,7 @@ export default [
         find: 'const bcdBrowsers = require("@mdn/browser-compat-data");',
         replace: "",
       }),
+      // And replace them with the fetch-based import code from above
       modify({
         find: 'const otherBrowsers = require("../data/downstream-browsers.json");',
         replace: replaceOutput,
