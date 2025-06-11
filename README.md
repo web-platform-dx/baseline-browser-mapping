@@ -44,7 +44,7 @@ import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-bro
 getCompatibleVersions();
 ```
 
-> [!NOTE]:
+> **NOTE**  
 > The `/fetch` and CDN hosted versions of this module load data from `web-features`, `@mdn/browser-compat-data` and this module's [`downstream browser data`](#downstream-browsers) dynamically from jsdeliver.net using the `fetch()` method. These approaches ensure the most up to date information possible, but they also require an active network connection. You may see occasional discrepancies between the data returned by `/fetch`/CDN versions of this module and the local-only version if the data dependencies of the local-only version are not up to date.
 
 Executed on 7th March 2025, the above code returns the following browser versions:
@@ -73,7 +73,7 @@ Executed on 7th March 2025, the above code returns the following browser version
 ];
 ```
 
-> [!NOTE]  
+> **NOTE**  
 > The minimum versions of each browser are not strictly the final release before the Widely available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely available feature set.
 
 ### `getCompatibleVersions()` configuration options
@@ -121,9 +121,9 @@ Returns the following versions:
 ];
 ```
 
-> [!NOTE]  
+> **NOTE**  
 > The minimum version of each browser is not necessarily the final version released in that calendar year. In the above example, Firefox 84 was the final version released in 2020; however Firefox 83 supported all of the features that were interoperable at the end of 2020.  
-> [!WARNING]  
+> **WARNING**  
 > You cannot use `targetYear` and `widelyAavailableDate` together. Please only use one of these options at a time.
 
 #### `widelyAvailableOnDate`
@@ -310,7 +310,7 @@ getAllVersions({
 ...
 ```
 
-> [!NOTE]
+> **NOTE**  
 > The above example uses `"includeDownstreamBrowsers": true`
 
 ### Static resources
@@ -357,7 +357,7 @@ Shows UC Browser Mobile 13.8 implementing Chromium 100, and:
 
 Shows Yandex Browser Mobile 24.10 implementing Chromium 128. The Chromium version from this string is mapped to the corresponding Chrome version from MDN `browser-compat-data`.
 
-> [!NOTE]  
+> **NOTE**  
 > Where possible, approximate release dates have been included based on useragents.io "first seen" data. useragents.io does not have "first seen" dates prior to June 2020. However, these browsers' Baseline compatibility is determined by their Chromium version, so their release dates are more informative than critical.
 
 This data is updated on a daily basis using a [script](https://github.com/web-platform-dx/web-features/tree/main/scripts/refresh-downstream.ts) triggered by a GitHub [action](https://github.com/web-platform-dx/web-features/tree/main/.github/workflows/refresh_downstream.yml). Useragents.io provides a private API for this module which exposes the last 7 days of newly seen user agents for the currently tracked browsers. If a new major version of one of the tracked browsers is encountered with a Chromium version that meets or exceeds the previous latest version of that browser, it is added to the [src/data/downstream-browsers.json](src/data/downstream-browsers.json) file with the date it was first seen by useragents.io as its release date.
@@ -381,5 +381,5 @@ This data is updated on a daily basis using a [script](https://github.com/web-pl
 | UC Browser Mobile     | `uc_android`              | `false` | useragents.io             |
 | Yandex Browser Mobile | `ya_android`              | `false` | useragents.io             |
 
-> [!NOTE]  
+> **NOTE**  
 > All the non-core browsers currently included implement Chromium. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium version they implement, not their release date.
