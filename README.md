@@ -116,7 +116,7 @@ Returns the following versions:
 
 #### `widelyAvailableOnDate`
 
-The `widelyAvailableOnDate` option returns the minimum versions compatible with Baseline Widely available on a specified date in the formay `YYYY-MM-DD`:
+The `widelyAvailableOnDate` option returns the minimum versions compatible with Baseline Widely available on a specified date in the format `YYYY-MM-DD`:
 
 ```javascript
 getCompatibleVersions({
