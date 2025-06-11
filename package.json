@@ -32,13 +32,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.20",
-    "web-features": "^2.36.1"
+    "@mdn/browser-compat-data": "^6.0.22",
+    "web-features": "^2.38.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/node": "^22.15.17",
+    "@types/node": "^24.0.0",
     "prettier": "^3.5.3",
     "rollup": "^4.41.1",
     "rollup-plugin-copy": "^3.5.0",
