@@ -13,6 +13,9 @@
   ],
   "types": "./dist/index.d.ts",
   "type": "module",
+  "bin": {
+    "baseline-browser-mapping": "./dist/cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "rm -rf dist; prettier . --write; tsc",
