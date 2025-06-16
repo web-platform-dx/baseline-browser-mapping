@@ -25,7 +25,7 @@
     "web-features": "^2.35.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.17",
+    "@types/node": "^24.0.3",
     "prettier": "^3.5.3",
     "typescript": "^5.7.2"
   },
