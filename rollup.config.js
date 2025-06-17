@@ -3,20 +3,12 @@ import typescript from "@rollup/plugin-typescript";
 import copy from "rollup-plugin-copy";
 import terser from "@rollup/plugin-terser";
 
-const replaceOutput = `const urls = ["https://cdn.jsdelivr.net/npm/@mdn/browser-compat-data", "https://cdn.jsdelivr.net/npm/baseline-browser-mapping/dist/data/downstream-browsers.json", "https://cdn.jsdelivr.net/npm/web-features/data.json"];
-const [bcdBrowsers, otherBrowsers, webFeatures] = await Promise.all(urls.map(async url => {
-  const resp = await fetch(url);
-  return resp.json();
-  }
-));
-const features = webFeatures.features;`;
-
 export default [
   // Default export for node.js contexts
   {
     input: "src/index.ts",
     output: {
-      format: "es",
+      format: "cjs",
       file: "dist/index.js",
     },
     plugins: [
@@ -31,35 +23,77 @@ export default [
         ],
       }),
     ],
+    external: [
+      "@mdn/browser-compat-data",
+      "web-features",
+      "./scripts/downstream-browsers.js",
+      "node:module",
+    ],
   },
-  // Fetch version that loads from web
+  // Fetch version that loads from web and falls back to local
   {
-    input: "src/scripts/baseline-browser-versions.ts",
+    input: "src/index.fetch.ts",
     output: {
       format: "es",
-      file: "dist/baseline-browser-mapping.js",
+      dir: "dist",
     },
     plugins: [
-      // Remove all the import statements that won't work in browser contexts
-      modify({
-        find: 'import { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);\n',
-        replace: "",
-      }),
-      modify({
-        find: 'import { features } from "web-features";',
-        replace: "",
-      }),
-      modify({
-        find: 'const bcdBrowsers = require("@mdn/browser-compat-data");',
-        replace: "",
-      }),
-      // And replace them with the fetch-based import code from above
-      modify({
-        find: 'const otherBrowsers = require("../data/downstream-browsers.json");',
-        replace: replaceOutput,
-      }),
       typescript({ tsconfig: "./tsconfig.json" }),
-      terser(),
+      // terser(),
+    ],
+    external: [
+      "@mdn/browser-compat-data",
+      "web-features",
+      "./scripts/downstream-browsers.js",
+      "./scripts/import-local.js",
+      "./scripts/import-local-legacy.js",
+      "compare-versions",
+    ],
+  },
+  {
+    input: "src/index.web.ts",
+    output: {
+      format: "es",
+      dir: "dist",
+    },
+    plugins: [typescript({ tsconfig: "./tsconfig.json" }), terser()],
+  },
+  {
+    input: "src/scripts/downstream-browsers.ts",
+    output: {
+      format: "es",
+      file: "dist/scripts/downstream-browsers.js",
+    },
+    plugins: [typescript({ outDir: "dist/scripts" }), terser()],
+  },
+  {
+    input: "src/scripts/import-local.ts",
+    output: {
+      format: "es",
+      file: "dist/scripts/import-local.js",
+      importAttributesKey: "with",
+    },
+    plugins: [typescript({ outDir: "dist/scripts" })],
+    external: [
+      "node:module",
+      "web-features",
+      "@mdn/browser-compat-data",
+      "./downstream-browsers.js",
+    ],
+  },
+  {
+    input: "src/scripts/import-local-legacy.ts",
+    output: {
+      format: "es",
+      file: "dist/scripts/import-local-legacy.js",
+      importAttributesKey: "assert",
+    },
+    plugins: [typescript({ outDir: "dist/scripts" })],
+    external: [
+      "node:module",
+      "web-features",
+      "@mdn/browser-compat-data",
+      "./downstream-browsers.js",
     ],
   },
 ];

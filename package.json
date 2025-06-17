@@ -4,7 +4,8 @@
   "description": "A library for obtaining browser versions with their maximum supported Baseline feature set and Widely Available status.",
   "exports": {
     ".": "./dist/index.js",
-    "./fetch": "./dist/baseline-browser-mapping.js"
+    "./fetch": "./dist/index.fetch.js",
+    "./web": "./dist/index.web.js"
   },
   "files": [
     "dist/*",
@@ -19,7 +20,10 @@
         "./dist/index.d.ts"
       ],
       "./fetch": [
-        "./dist/baseline-browser-mapping.d.ts"
+        "./dist/index.d.ts"
+      ],
+      "./web": [
+        "./dist/index.d.ts"
       ]
     }
   },
@@ -33,6 +37,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@mdn/browser-compat-data": "^6.0.22",
+    "compare-versions": "^6.1.1",
     "web-features": "^2.38.0"
   },
   "devDependencies": {
