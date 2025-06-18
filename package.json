@@ -5,7 +5,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./fetch": "./dist/index.fetch.js",
-    "./web": "./dist/index.web.js"
+    "./fetchWithLocalFallback": "./dist/index.fetchWithLocalFallback.js"
   },
   "files": [
     "dist/*",
@@ -22,7 +22,7 @@
       "./fetch": [
         "./dist/index.d.ts"
       ],
-      "./web": [
+      "./fetchWithLocalFallbacks": [
         "./dist/index.d.ts"
       ]
     }

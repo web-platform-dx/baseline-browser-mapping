@@ -55,27 +55,12 @@ if (failed && typeof window != "undefined") {
   throw new Error(
     "could not import critical resources from network, please check network traffic for failed requests.",
   );
-} else {
-  const compareVersions = await import("compare-versions");
-  console.log(process.version);
-  console.log(
-    "gt or eq 20.10.0",
-    compareVersions.compare(process.version, "20.10.0", ">="),
-  );
-  let needsWith = compareVersions.compare(process.version, "20.10.0", ">=");
-  let localModules;
-  localModules = needsWith
-    ? await import("./scripts/import-local.js")
-    : await import("./scripts/import-local-legacy.js");
-  bcdBrowsers = localModules.bcdBrowsers;
-  otherBrowsers = localModules.otherBrowsers;
-  features = localModules.features;
 }
 
 const dataInput = {
   bcdBrowsers: bcdBrowsers.browsers,
   otherBrowsers: otherBrowsers.browsers,
-  features: features,
+  features: features.features,
 };
 
 import {

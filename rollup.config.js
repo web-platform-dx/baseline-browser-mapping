@@ -32,7 +32,7 @@ export default [
   },
   // Fetch version that loads from web and falls back to local
   {
-    input: "src/index.fetch.ts",
+    input: "src/index.fetchWithLocalFallback.ts",
     output: {
       format: "es",
       dir: "dist",
@@ -51,20 +51,12 @@ export default [
     ],
   },
   {
-    input: "src/index.web.ts",
+    input: "src/index.fetch.ts",
     output: {
       format: "es",
       dir: "dist",
     },
     plugins: [typescript({ tsconfig: "./tsconfig.json" }), terser()],
-  },
-  {
-    input: "src/scripts/downstream-browsers.ts",
-    output: {
-      format: "es",
-      file: "dist/scripts/downstream-browsers.js",
-    },
-    plugins: [typescript({ outDir: "dist/scripts" }), terser()],
   },
   {
     input: "src/scripts/import-local.ts",
@@ -78,7 +70,7 @@ export default [
       "node:module",
       "web-features",
       "@mdn/browser-compat-data",
-      "./downstream-browsers.js",
+      "../data/downstream-browsers.json",
     ],
   },
   {
@@ -93,7 +85,7 @@ export default [
       "node:module",
       "web-features",
       "@mdn/browser-compat-data",
-      "./downstream-browsers.js",
+      "../data/downstream-browsers.json",
     ],
   },
 ];
