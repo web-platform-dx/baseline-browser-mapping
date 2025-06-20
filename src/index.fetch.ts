@@ -79,17 +79,17 @@ import {
  * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
  * - `targetYear`: year in format `YYYY`
  */
-const getCompatibleVersions = (userInput: Options) => {
+const getCompatibleVersions = (userInput?: Options) => {
   return getCompatibleVersionsBase(dataInput, userInput);
 };
 
 /**
- * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
+ * Returns all browser versions known to this module with their level of Baseline support as an `Array`, `Object` or a `String` CSV.
  * Takes an object as an argument with two optional properties:
  * - `includeDownstreamBrowsers`: `true` (default) or `false`
  * - `outputFormat`: `array` (default), `object` or `csv`
  */
-const getAllVersions = (userInput: AllVersionsOptions) => {
+const getAllVersions = (userInput?: AllVersionsOptions) => {
   return getAllVersionsBase(dataInput, userInput);
 };
 
