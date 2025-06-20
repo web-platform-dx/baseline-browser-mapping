@@ -36,13 +36,14 @@
     "test": "npm run prepare && npm run test:format && npm run test:lint && npx jasmine && npm run test:bcb",
     "prepare": "rm -rf dist; prettier . --write; rollup -c",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
-    "refresh-static": "npx tsx scripts/refresh-static.ts"
+    "refresh-static": "npx tsx scripts/refresh-static.ts",
+    "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.22",
+    "@mdn/browser-compat-data": "^6.0.24",
     "compare-versions": "^6.1.1",
-    "web-features": "^2.38.0"
+    "web-features": "^2.39.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
