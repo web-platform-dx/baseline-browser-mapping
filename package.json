@@ -29,8 +29,11 @@
   },
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "rm -rf dist; prettier . --write; rollup -c; cp dist/index.d.ts dist/baseline-browser-mapping.d.ts",
+    "test:format": "prettier --check .",
+    "test:lint": "npx eslint .",
+    "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && && rm -rf test-bcb",
+    "test": "npm run prepare && npm run test:format && npm run test:lint && npm run test:bcb",
+    "prepare": "rm -rf dist; prettier . --write; rollup -c",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts"
   },
@@ -49,7 +52,9 @@
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-modify": "^3.0.0",
     "tslib": "^2.8.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "eslint-plugin-new-with-error": "^5.0.0",
+    "typescript-eslint": "^8.34.1"
   },
   "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
 }

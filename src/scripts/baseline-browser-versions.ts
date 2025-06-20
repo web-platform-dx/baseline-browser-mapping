@@ -173,7 +173,7 @@ const getCompatibleFeaturesByDate = (
 ): Feature[] => {
   return Object.entries(features)
     .filter(
-      ([feature_id, feature]) =>
+      ([, feature]) =>
         feature.status?.baseline_low_date &&
         new Date(feature.status.baseline_low_date) <= date,
     )
@@ -193,7 +193,7 @@ const getMinimumVersionsFromFeatures = (
 ): BrowserVersion[] => {
   let minimumVersions: { [key: string]: BrowserVersion } = {};
 
-  Object.entries(bcdBrowsers).forEach(([browserName, browserData]) => {
+  Object.entries(bcdBrowsers).forEach(([browserName]) => {
     minimumVersions[browserName] = {
       browser: browserName,
       version: "0",
