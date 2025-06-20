@@ -22,7 +22,7 @@
       "./fetch": [
         "./dist/index.d.ts"
       ],
-      "./fetchWithLocalFallbacks": [
+      "./fetchWithLocalFallback": [
         "./dist/index.d.ts"
       ]
     }
@@ -31,8 +31,9 @@
   "scripts": {
     "test:format": "prettier --check .",
     "test:lint": "npx eslint .",
-    "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && && rm -rf test-bcb",
-    "test": "npm run prepare && npm run test:format && npm run test:lint && npm run test:bcb",
+    "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
+    "test:jasmine": "npx jasmine",
+    "test": "npm run prepare && npm run test:format && npm run test:lint && npx jasmine && npm run test:bcb",
     "prepare": "rm -rf dist; prettier . --write; rollup -c",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts"
@@ -47,13 +48,15 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^24.0.0",
+    "eslint-plugin-new-with-error": "^5.0.0",
+    "jasmine": "^5.8.0",
+    "jasmine-spec-reporter": "^7.0.0",
     "prettier": "^3.5.3",
     "rollup": "^4.41.1",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-modify": "^3.0.0",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2",
-    "eslint-plugin-new-with-error": "^5.0.0",
     "typescript-eslint": "^8.34.1"
   },
   "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"

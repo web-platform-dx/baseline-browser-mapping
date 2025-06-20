@@ -8,7 +8,7 @@ export default [
   {
     input: "src/index.ts",
     output: {
-      format: "cjs",
+      format: "es",
       file: "dist/index.js",
     },
     plugins: [
