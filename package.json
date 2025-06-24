@@ -41,9 +41,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.24",
+    "@mdn/browser-compat-data": "^6.0.25",
     "compare-versions": "^6.1.1",
-    "web-features": "^2.39.0"
+    "web-features": "^2.40.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
