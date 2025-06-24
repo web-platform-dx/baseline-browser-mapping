@@ -32,20 +32,23 @@ To install the package to your project, run:
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
 ```javascript
-// If you are using the module locally and can't guarantee a network connection
+// If you are using the module locally and only want to use local dependencies
 import { getCompatibleVersions } from "baseline-browser-mapping";
 
-// If you are using the module with a front-end framework that handles module resolution
+// If you are using the module with a front-end framework that handles module resolution or you don't want to use local dependency data at all
 import { getCompatibleVersions } from "baseline-browser-mapping/fetch";
 
+// If you are using the module locally and want to try to fetch the latest data first, then fall back to local dependencies if the network is unavailable
+import { getCompatibleVersions } from "baseline-browser-mapping/fetchWithLocalFallback";
+
 // If you are using the module in a browser, you can use a CDN like jsdelivr
-import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping/dist/baseline-browser-mapping.js";
+import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping/dist/index.fetch.js";
 
 getCompatibleVersions();
 ```
 
 > **NOTE**  
-> The `/fetch` and CDN hosted versions of this module load data from `web-features`, `@mdn/browser-compat-data` and this module's [`downstream browser data`](#downstream-browsers) dynamically from jsdeliver.net using the `fetch()` method. These approaches ensure the most up to date information possible, but they also require an active network connection. You may see occasional discrepancies between the data returned by `/fetch`/CDN versions of this module and the local-only version if the data dependencies of the local-only version are not up to date.
+> The `/fetch`, `/fetchWithLocalFallback` and CDN-hosted versions of this module load data from `web-features`, `@mdn/browser-compat-data` and this module's [`downstream browser data`](#downstream-browsers) dynamically from jsdeliver.net using the `fetch()` method. If jsdelivr.net is unavailable, they will attempt to load from These approaches ensure the most up to date information possible, but they also require an active network connection. You may see occasional discrepancies between the data returned by `/fetch`/`/fetchWithLocalFallback`/CDN versions of this module and the local-only version if the data dependencies of the local-only version are not up to date.
 
 Executed on 7th March 2025, the above code returns the following browser versions:
 
