@@ -18,4 +18,4 @@ cd baseline-browser-mapping
 npm install
 ```
 
-If you make changes to the code, make sure to run `nmp run prepare` before you test your changes from another package.
+If you make changes to the code, make sure to run `nmp run prepare` before you test your changes. This module uses rollup to package code for distribution.

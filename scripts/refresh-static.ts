@@ -1,6 +1,6 @@
-import { getAllVersions } from "../src/scripts/baseline-browser-versions";
+import { getAllVersions } from "../src/index";
 
-import { readFileSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 
 // Write core versions
 writeFileSync(
