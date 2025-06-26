@@ -1,0 +1,83 @@
+type FeatureFlat = [
+  id: string,
+  name: string,
+  baseline_low_date: string,
+  support: object,
+]
+
+type FeatureKeyed = {
+  id: string;
+  name: string;
+  status: {
+    baseline_low_date: string;
+    support: object;
+  }
+}
+
+type browserVersionFlat = [
+  version: string,
+  release_date: string | null,
+  status: string | null,
+  engine: string | null,
+  engine_version: string | null,
+]
+
+type browserVersionKeyed = {
+  version: string;
+  release_date: string | null;
+  status: string | null;
+  engine: string | null;
+  engine_version: string | null;
+}
+
+const expandFeatures = () => {
+  const featuresOutObject: { [key: string]: FeatureKeyed } = {};
+  featuresFlat.forEach((feature) => {
+    featuresOutObject[feature[0]] = {
+      id: feature[0],
+      name: feature[1],
+      status: {
+        baseline_low_date: feature[2],
+        support: feature[3],
+      }
+    }
+  })
+  return featuresOutObject;
+}
+
+const expandBrowserVersions = (
+  bcdBrowsersFlat: { [browser: string]: { [releases: string]: browserVersionFlat[] } }
+): { [browser: string]: { [releases: string]: { [key: string]: browserVersionKeyed } } } => {
+  const browsersOutObject: { [browser: string]: { [releases: string]: { [key: string]: browserVersionKeyed } } } = {};
+  Object.entries(bcdBrowsersFlat).forEach(([browser, data]) => {
+    if (data.releases) {
+      if (!browsersOutObject[browser]) {
+        browsersOutObject[browser] = {};
+      }
+      if (!browsersOutObject[browser]['releases']) {
+        browsersOutObject[browser]['releases'] = {};
+      }
+      // Ensure releases is defined before using it
+      const releasesObj = browsersOutObject[browser]['releases'];
+      data.releases.forEach(release => {
+        const releaseToInsert: browserVersionKeyed = {
+          version: release[0],
+          release_date: release[1],
+          status: release[2],
+          engine: release[3],
+          engine_version: release[4],
+        }
+        releasesObj[release[0]] = releaseToInsert;
+      });
+    }
+  });
+  return browsersOutObject;
+}
+
+const features = expandFeatures();
+
+const bcdBrowsers = expandBrowserVersions(bcdBrowsersFlat);
+
+const downstreamBrowsers = expandBrowserVersions(downstreamBrowsersFlat);
+
+export { features, bcdBrowsers, downstreamBrowsers }

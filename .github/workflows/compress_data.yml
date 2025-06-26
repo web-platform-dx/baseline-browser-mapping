@@ -1,0 +1,55 @@
+name: Refresh downstream-browsers.json
+
+on:
+  schedule:
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+env:
+  package_dir: "/"
+
+jobs:
+  refresh-downstream-browsers-json:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install environment
+        run: npm ci
+
+      - name: Run refresh-downstream.ts
+        id: refresh-downstream-script
+        run: |
+          npm run refresh-downstream ${{ secrets.USERAGENTSIOKEY }}
+          if [[ -n "$(git diff)" ]]; then
+            echo "changes-available=TRUE" >> $GITHUB_OUTPUT
+          else
+            echo "changes-available=FALSE" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push changes to main
+        if: steps.refresh-downstream-script.outputs.changes-available == 'TRUE'
+        id: push-to-main
+        run: |
+          echo "changes have occurred, committing to main"
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          npm run prepare
+          git add .
+          git commit -m 'Updating downstream-browsers'
+          git push origin main
+
+      # - name: Tag release for publishing
+      #   if: steps.push-to-main.outcome == 'success'
+      #   id: tag-release
+      #   run: |
+      #     npm version patch -m "Patch to %s because downstream-browsers.json changed"
+      #     git push && git push --tags

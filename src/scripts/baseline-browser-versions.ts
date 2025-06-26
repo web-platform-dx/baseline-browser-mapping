@@ -1,9 +1,4 @@
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
-
-const bcdBrowsers = require("@mdn/browser-compat-data");
-const otherBrowsers = require("../data/downstream-browsers.json");
-import { features } from "web-features";
+import { features, bcdBrowsers, otherBrowsers } from "./expose-data.js";
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -15,19 +10,7 @@ const bcdCoreBrowserNames: string[] = [
   "safari_ios",
 ];
 
-type BrowserData = {
-  [key: string]: {
-    releases: {
-      [key: string]: {
-        status: string;
-        release_date?: string;
-      };
-    };
-  };
-};
-
 type Browser = {
-  name: string;
   releases: {
     [version: string]: {
       status: string;
@@ -38,10 +21,14 @@ type Browser = {
   };
 };
 
+type BrowserData = {
+  [key: string]: Browser;
+};
+
 type BrowserVersion = {
   browser: string;
   version: string;
-  release_date: string;
+  release_date?: string;
   engine?: string;
   engine_version?: string;
 };
@@ -66,7 +53,7 @@ type Feature = {
 };
 
 const coreBrowserData: [string, Browser][] = Object.entries(
-  bcdBrowsers.browsers as BrowserData,
+  bcdBrowsers as BrowserData,
 ).filter(([browserName]) => bcdCoreBrowserNames.includes(browserName)) as [
   string,
   Browser,
@@ -87,13 +74,10 @@ const bcdDownstreamBrowserNames: string[] = [
   "opera",
 ];
 const downstreamBrowserData: [string, Browser][] = [
-  ...(Object.entries(bcdBrowsers.browsers as BrowserData).filter(
-    ([browserName]) => bcdDownstreamBrowserNames.includes(browserName),
+  ...(Object.entries(bcdBrowsers as BrowserData).filter(([browserName]) =>
+    bcdDownstreamBrowserNames.includes(browserName),
   ) as [string, Browser][]),
-  ...(Object.entries(otherBrowsers.browsers as BrowserData) as [
-    string,
-    Browser,
-  ][]),
+  ...(Object.entries(otherBrowsers as BrowserData) as [string, Browser][]),
 ];
 
 const acceptableStatuses: string[] = [
@@ -162,7 +146,7 @@ const compareVersions = (
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
   return Object.entries(features)
     .filter(
-      ([feature_id, feature]) =>
+      ([, feature]) =>
         feature.status.baseline_low_date &&
         new Date(feature.status.baseline_low_date) <= date,
     )
