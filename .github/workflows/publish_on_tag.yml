@@ -22,8 +22,8 @@ jobs:
       - name: Install environment
         run: npm ci
 
-      - name: Prepare for release
-        run: npm run prepare
+      - name: Build for release
+        run: npm run build
 
       - name: Publish new version to NPM
         id: publish-to-npm

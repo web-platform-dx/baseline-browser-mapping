@@ -1,4 +1,8 @@
-import { data, BrowserVersionFlat } from "../data/data.js";
+import {
+  data,
+  BrowserVersionFlat,
+  CompressedSupportObject,
+} from "../data/data.js";
 
 const featuresFlat = data.features;
 
@@ -6,7 +10,7 @@ type FeatureKeyed = {
   id: string;
   status: {
     baseline_low_date: string;
-    support: object;
+    support: { [key: string]: string };
   };
 };
 
@@ -18,6 +22,18 @@ type BrowserVersionKeyed = {
   engine_version: string | undefined;
 };
 
+const expandSupportObject = (object: CompressedSupportObject) => {
+  return {
+    chrome: object.c,
+    chrome_android: object.ca,
+    edge: object.e,
+    firefox: object.f,
+    firefox_android: object.fa,
+    safari: object.s,
+    safari_ios: object.si,
+  };
+};
+
 const expandFeatures = () => {
   const featuresOutObject: { [key: string]: FeatureKeyed } = {};
   featuresFlat.forEach((feature) => {
@@ -25,7 +41,7 @@ const expandFeatures = () => {
       id: feature[0],
       status: {
         baseline_low_date: feature[1],
-        support: feature[2],
+        support: expandSupportObject(feature[2]),
       },
     };
   });
@@ -69,7 +85,7 @@ const expandBrowserVersions = (bcdBrowsersFlat: {
       data.releases.forEach((release) => {
         const releaseToInsert: BrowserVersionKeyed = {
           version: release[0],
-          release_date: release[1],
+          release_date: release[1] == "u" ? "unknown" : release[1],
           status: statusMapping[release[2]],
           engine: release[3] ? engineMapping[release[3]] : undefined,
           engine_version: release[4],

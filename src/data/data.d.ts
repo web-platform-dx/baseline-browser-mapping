@@ -1,4 +1,18 @@
-type FeatureFlat = [id: string, baseline_low_date: string, support: object];
+type FeatureFlat = [
+  id: string,
+  baseline_low_date: string,
+  support: CompressedSupportObject,
+];
+
+type CompressedSupportObject = {
+  c: string;
+  ca: string;
+  e: string;
+  f: string;
+  fa: string;
+  s: string;
+  si: string;
+};
 
 type BrowserVersionFlat = [
   version: string,
@@ -13,4 +27,4 @@ declare const data: {
   bcdBrowsers: { [browser: string]: { releases: BrowserVersionFlat[] } };
   otherBrowsers: { [browser: string]: { releases: BrowserVersionFlat[] } };
 };
-export { data, BrowserVersionFlat, FeatureFlat };
+export { data, BrowserVersionFlat, FeatureFlat, CompressedSupportObject };
