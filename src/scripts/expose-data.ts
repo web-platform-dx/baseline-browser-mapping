@@ -49,10 +49,10 @@ const expandFeatures = () => {
 };
 
 const engineMapping: { [key: string]: string } = {
-  W: "WebKit",
-  G: "Gecko",
-  P: "Presto",
-  B: "Blink",
+  w: "WebKit",
+  g: "Gecko",
+  p: "Presto",
+  b: "Blink",
 };
 
 const statusMapping: { [key: string]: string } = {

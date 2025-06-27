@@ -61,10 +61,10 @@ const bcdBrowserNames: string[] = [
 ];
 
 const engineMapping: object = {
-  WebKit: "W",
-  Gecko: "G",
-  Presto: "P",
-  Blink: "B",
+  WebKit: "w",
+  Gecko: "g",
+  Presto: "p",
+  Blink: "b",
 };
 
 const statusMapping: object = {
