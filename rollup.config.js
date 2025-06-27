@@ -10,6 +10,17 @@ export default [
       dir: "dist",
     },
     plugins: [typescript({ tsconfig: "./tsconfig.json" })],
+    external: ["./expose-data.js"],
+  },
+  {
+    input: "src/scripts/expose-data.ts",
+    output: {
+      file: "dist/scripts/expose-data.js",
+      format: "es",
+    },
+    plugins: [
+      typescript({ tsconfig: "./tsconfig.json", outDir: "dist/scripts" }),
+    ],
   },
   {
     input: "src/index.ts",
