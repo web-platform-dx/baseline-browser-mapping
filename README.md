@@ -11,18 +11,32 @@ To use this package, you'll need:
 
 - Node.js (a supported [current, active LTS, or maintenance LTS release](https://nodejs.org/en/about/previous-releases))
 
-## Install
+## Install for local development
 
 To install the package, run:
 
-`npm install --save baseline-browser-mapping`
+`npm install --save-dev baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package checks for updates to those modules and [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible:
 
 ```javascript
 "scripts": [
-  "refresh-baseline-browser-mapping": "npm i --save baseline-browser-mapping@latest"
+  "refresh-baseline-browser-mapping": "npm i --save-dev baseline-browser-mapping@latest"
 ]
+```
+
+## Importing `baseline-browser-mapping`
+
+This module exposes two functions: `getCompatibleVersions()` and `getAllVersions()`, both which can be imported directly from `baseline-browser-mapping`:
+
+```javascript
+import { getCompatibleVersions } from "baseline-browser-mapping";
+```
+
+If you want to load the script and data directly in a browser without hosting it yourself, consider using a CDN:
+
+```javascript
+import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
@@ -30,8 +44,6 @@ To install the package, run:
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
 ```javascript
-import { getCompatibleVersions } from "baseline-browser-mapping";
-
 getCompatibleVersions();
 ```
 

@@ -1,10 +1,10 @@
 {
   "name": "baseline-browser-mapping",
+  "main": "./dist/index.js",
   "version": "2.4.5",
   "description": "A library for obtaining browser versions with their maximum supported Baseline feature set and Widely Available status.",
   "exports": {
-    ".": "./dist/index.js",
-    "./min": "./dist/index.min.js"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist/*",
@@ -13,16 +13,6 @@
     "CONTRIBUTING.md"
   ],
   "types": "./index.d.ts",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./dist/index.d.ts"
-      ],
-      "./min": [
-        "./dist/index.d.ts"
-      ]
-    }
-  },
   "type": "module",
   "scripts": {
     "test:format": "prettier --check .",
@@ -30,7 +20,7 @@
     "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
     "test:jasmine": "npx jasmine",
     "test": "npm run build && rm -rf test-bcb && npm run test:format && npm run test:lint && npx jasmine && npm run test:bcb",
-    "build": "npm run compress-data; rm -rf dist; prettier . --write; rollup -c; cp dist/index.d.ts dist/index.min.d.ts",
+    "build": "npm run compress-data; rm -rf dist; prettier . --write; rollup -c",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
     "compress-data": "npx tsx scripts/compress-data.ts",
