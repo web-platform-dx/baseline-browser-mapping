@@ -100,46 +100,30 @@ const stripLTEPrefix = (str: string): string => {
 };
 
 const compareVersions = (
-  incomingVersionString: string,
-  previousVersionString: string,
-): number => {
-  if (incomingVersionString === previousVersionString) {
+  nextVersion: string,
+  prevVersion: string,
+): 1 | 0 | -1 => {
+  if (nextVersion === prevVersion) {
     return 0;
   }
 
-  let [incomingVersionStringMajor, incomingVersionStringMinor] =
-    incomingVersionString.split(".");
-  let [previousVersionStringMajor, previousVersionStringMinor] =
-    previousVersionString.split(".");
+  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
+  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
 
-  if (!incomingVersionStringMajor || !previousVersionStringMajor) {
-    throw new Error(
-      "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
-    );
+  if (isNaN(nextMajor) || isNaN(nextMinor)) {
+    throw new Error(`Invalid version: ${nextVersion}`);
+  }
+  if (isNaN(prevMajor) || isNaN(prevMinor)) {
+    throw new Error(`Invalid version: ${prevVersion}`);
   }
 
-  if (
-    parseInt(incomingVersionStringMajor) > parseInt(previousVersionStringMajor)
-  ) {
-    return 1;
+  if (nextMajor !== prevMajor) {
+    return nextMajor > prevMajor ? 1 : -1;
   }
-
-  if (incomingVersionStringMinor) {
-    if (
-      parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
-      (!previousVersionStringMinor ||
-        parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
-    ) {
-      return 1;
-    }
+  if (nextMinor !== prevMinor) {
+    return nextMinor > prevMinor ? 1 : -1;
   }
-  return -1;
+  return 0;
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
