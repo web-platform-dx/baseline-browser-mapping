@@ -1,8 +1,17 @@
 import {
   data,
+  lastUpdated,
   BrowserVersionFlat,
   CompressedSupportObject,
 } from "../data/data.js";
+
+const twoMonthAgos = new Date().setMonth(new Date().getMonth() - 3);
+
+if (lastUpdated < twoMonthAgos) {
+  console.warn(
+    "[baseline-browser-mapping] The data in this module is over three months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D",
+  );
+}
 
 const featuresFlat = data.features;
 

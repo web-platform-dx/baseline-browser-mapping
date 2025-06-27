@@ -27,4 +27,13 @@ declare const data: {
   bcdBrowsers: { [browser: string]: { releases: BrowserVersionFlat[] } };
   otherBrowsers: { [browser: string]: { releases: BrowserVersionFlat[] } };
 };
-export { data, BrowserVersionFlat, FeatureFlat, CompressedSupportObject };
+
+declare const lastUpdated: number;
+
+export {
+  data,
+  BrowserVersionFlat,
+  FeatureFlat,
+  CompressedSupportObject,
+  lastUpdated,
+};

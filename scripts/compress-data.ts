@@ -128,7 +128,9 @@ const dataOut = {
   features: featuresOutput,
 };
 
+const now = new Date().getTime();
+
 writeFileSync(
   "./src/data/data.js",
-  `const data = ${JSON.stringify(dataOut)}\n export {data}`,
+  `const data = ${JSON.stringify(dataOut)};const lastUpdated = ${now};export {data, lastUpdated}`,
 );

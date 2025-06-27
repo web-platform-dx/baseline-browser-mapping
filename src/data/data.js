@@ -5678,4 +5678,5 @@ const data = {
     ],
   ],
 };
-export { data };
+const lastUpdated = 1751038447294;
+export { data, lastUpdated };
