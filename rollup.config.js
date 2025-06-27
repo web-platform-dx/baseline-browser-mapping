@@ -13,4 +13,15 @@ export default [
       terser(),
     ],
   },
+  {
+    input: "src/index.ts",
+    output: {
+      format: "cjs",
+      file: "dist/index.cjs",
+    },
+    plugins: [
+      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
+      terser(),
+    ],
+  },
 ];

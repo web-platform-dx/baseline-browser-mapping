@@ -5,12 +5,6 @@ By the [W3C WebDX Community Group](https://www.w3.org/community/webdx/) and cont
 `baseline-browser-mapping` exposes arrays of browsers compatible with Baseline Widely available and specified Baseline year feature sets.
 You can use `baseline-browser-mapping` to help you determine minimum browser version support for your chosen Baseline feature set.
 
-## Prerequisites
-
-To use this package, you'll need:
-
-- Node.js (a supported [current, active LTS, or maintenance LTS release](https://nodejs.org/en/about/previous-releases))
-
 ## Install for local development
 
 To install the package, run:
@@ -37,6 +31,12 @@ If you want to load the script and data directly in a browser without hosting it
 
 ```javascript
 import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+```
+
+`baseline-browser-mapping` runs as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
+
+```javascript
+const { getCompatibleVersions } = require("baseline-browser-mapping/legacy");
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
