@@ -15,10 +15,10 @@ export default [
     input: "src/index.ts",
     output: {
       format: "es",
-      dir: "dist/min",
+      file: "dist/index.min.js",
     },
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", outDir: "dist/min" }),
+      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
       terser(),
     ],
   },

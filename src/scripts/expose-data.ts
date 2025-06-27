@@ -1,30 +1,21 @@
-import data from "../data/data.js";
+import { data, BrowserVersionFlat } from "../data/data.js";
 
 const featuresFlat = data.features;
 
 type FeatureKeyed = {
   id: string;
-  name: string;
   status: {
     baseline_low_date: string;
     support: object;
   };
 };
 
-type BrowserVersionFlat = [
-  version: string,
-  release_date: string | null,
-  status: string | null,
-  engine: string | null,
-  engine_version: string | null,
-];
-
 type BrowserVersionKeyed = {
   version: string;
-  release_date: string | null;
-  status: string | null;
-  engine: string | null;
-  engine_version: string | null;
+  release_date: string | undefined;
+  status: string | undefined;
+  engine: string | undefined;
+  engine_version: string | undefined;
 };
 
 const expandFeatures = () => {
@@ -32,14 +23,29 @@ const expandFeatures = () => {
   featuresFlat.forEach((feature) => {
     featuresOutObject[feature[0]] = {
       id: feature[0],
-      name: feature[1],
       status: {
-        baseline_low_date: feature[2],
-        support: feature[3],
+        baseline_low_date: feature[1],
+        support: feature[2],
       },
     };
   });
   return featuresOutObject;
+};
+
+const engineMapping: { [key: string]: string } = {
+  W: "WebKit",
+  G: "Gecko",
+  P: "Presto",
+  B: "Blink",
+};
+
+const statusMapping: { [key: string]: string } = {
+  r: "retired",
+  c: "current",
+  b: "beta",
+  n: "nightly",
+  p: "planned",
+  u: "unknown",
 };
 
 const expandBrowserVersions = (bcdBrowsersFlat: {
@@ -64,8 +70,8 @@ const expandBrowserVersions = (bcdBrowsersFlat: {
         const releaseToInsert: BrowserVersionKeyed = {
           version: release[0],
           release_date: release[1],
-          status: release[2],
-          engine: release[3],
+          status: statusMapping[release[2]],
+          engine: release[3] ? engineMapping[release[3]] : undefined,
           engine_version: release[4],
         };
         releasesObj[release[0]] = releaseToInsert;

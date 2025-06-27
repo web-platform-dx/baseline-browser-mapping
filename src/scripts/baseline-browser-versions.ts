@@ -47,7 +47,6 @@ type NestedBrowserVersions = {
 
 type Feature = {
   id: string;
-  name: string;
   baseline_low_date: string;
   support: object;
 };
@@ -153,7 +152,6 @@ const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
     .map(([feature_id, feature]) => {
       return {
         id: feature_id,
-        name: feature.name,
         baseline_low_date: feature.status.baseline_low_date as string,
         support: feature.status.support,
       };

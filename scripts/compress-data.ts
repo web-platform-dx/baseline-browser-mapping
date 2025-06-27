@@ -8,7 +8,6 @@ const featuresOutput = Object.entries(features)
   .filter(([, feature]) => feature.status?.baseline_low_date)
   .map(([featureId, feature]) => [
     featureId,
-    feature.name,
     feature.status?.baseline_low_date ?? "",
     feature.status?.support ?? {},
   ]);
@@ -27,6 +26,22 @@ const bcdBrowserNames: string[] = [
   "opera",
 ];
 
+const engineMapping: object = {
+  WebKit: "W",
+  Gecko: "G",
+  Presto: "P",
+  Blink: "B",
+};
+
+const statusMapping: object = {
+  retired: "r",
+  current: "c",
+  beta: "b",
+  nightly: "n",
+  planned: "p",
+  unknown: "u",
+};
+
 const bcdOutput = {};
 Object.entries(bcd.browsers).forEach(([browser, data]) => {
   if (bcdBrowserNames.includes(browser)) {
@@ -35,8 +50,12 @@ Object.entries(bcd.browsers).forEach(([browser, data]) => {
         return [
           releaseId,
           releaseData.release_date,
-          releaseData.status,
-          releaseData.engine,
+          releaseData.status
+            ? statusMapping[releaseData.status]
+            : releaseData.status,
+          releaseData.engine
+            ? engineMapping[releaseData.engine]
+            : releaseData.engine,
           releaseData.engine_version,
         ];
       },
@@ -53,8 +72,12 @@ Object.entries(other.browsers).forEach(([browser, data]) => {
       return [
         releaseId,
         releaseData.release_date,
-        releaseData.status,
-        releaseData.engine,
+        releaseData.status
+          ? statusMapping[releaseData.status]
+          : releaseData.status,
+        releaseData.engine
+          ? engineMapping[releaseData.engine]
+          : releaseData.engine,
         releaseData.engine_version,
       ];
     },
@@ -71,18 +94,5 @@ const dataOut = {
 
 writeFileSync(
   "./src/data/data.js",
-  `export default ${JSON.stringify(dataOut)}`,
+  `const data = ${JSON.stringify(dataOut)}\n export {data}`,
 );
-
-// const templateFile = readFileSync("./scripts/compress-data-template.txt", {
-//   encoding: "utf8",
-// });
-
-// const outputFile = `const featuresFlat: FeatureFlat[] = ${JSON.stringify(featuresOutput)}
-// const bcdBrowsersFlat: { [browser: string]: { [releases: string]: browserVersionFlat[] } } = ${JSON.stringify(bcdOutput)}
-// const otherBrowsersFlat: { [browser: string]: { [releases: string]: browserVersionFlat[] } } =  ${JSON.stringify(otherOutput)}
-// ${templateFile}`;
-
-// writeFileSync("./src/data.ts", outputFile, {
-//   encoding: "utf8",
-// });
