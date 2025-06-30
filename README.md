@@ -27,10 +27,12 @@ This module exposes two functions: `getCompatibleVersions()` and `getAllVersions
 import { getCompatibleVersions } from "baseline-browser-mapping";
 ```
 
-If you want to load the script and data directly in a browser without hosting it yourself, consider using a CDN:
+If you want to load the script and data directly in a web page without hosting it yourself, consider using a CDN:
 
-```javascript
-import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+```html
+<script type="module">
+  import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+</script>
 ```
 
 `baseline-browser-mapping` runs as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
