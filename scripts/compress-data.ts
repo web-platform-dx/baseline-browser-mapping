@@ -1,5 +1,3 @@
-/* scripts/compress-data.ts */
-import { writeFileSync } from "fs";
 import { features } from "web-features";
 import bcd from "@mdn/browser-compat-data" with { type: "json" };
 import other from "../src/data/downstream-browsers.json" with { type: "json" };
@@ -128,9 +126,4 @@ const dataOut = {
   features: featuresOutput,
 };
 
-const now = new Date().getTime();
-
-writeFileSync(
-  "./src/data/data.js",
-  `const data = ${JSON.stringify(dataOut)};const lastUpdated = ${now};export {data, lastUpdated}`,
-);
+export { dataOut };

@@ -9,7 +9,7 @@ const twoMonthAgos = new Date().setMonth(new Date().getMonth() - 2);
 
 if (lastUpdated < twoMonthAgos) {
   console.warn(
-    "[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D",
+    "[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
   );
 }
 
