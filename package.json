@@ -31,7 +31,8 @@
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
     "compress-data": "npx tsx scripts/compress-data.ts",
-    "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features -D"
+    "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features -D",
+    "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'"
   },
   "license": "Apache-2.0",
   "devDependencies": {
