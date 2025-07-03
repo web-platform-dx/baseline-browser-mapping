@@ -5,24 +5,40 @@ By the [W3C WebDX Community Group](https://www.w3.org/community/webdx/) and cont
 `baseline-browser-mapping` exposes arrays of browsers compatible with Baseline Widely available and specified Baseline year feature sets.
 You can use `baseline-browser-mapping` to help you determine minimum browser version support for your chosen Baseline feature set.
 
-## Prerequisites
-
-To use this package, you'll need:
-
-- Node.js (a supported [current, active LTS, or maintenance LTS release](https://nodejs.org/en/about/previous-releases))
-
-## Install
+## Install for local development
 
 To install the package, run:
 
-`npm install --save baseline-browser-mapping`
+`npm install --save-dev baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package uses dependabot to automatically update both modules on all minor and patch version releases and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as a build step:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package checks for updates to those modules and [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible:
 
 ```javascript
 "scripts": [
-  "refresh-baseline-browser-mapping": "npm i --save baseline-browser-mapping@latest"
+  "refresh-baseline-browser-mapping": "npm i --save-dev baseline-browser-mapping@latest"
 ]
+```
+
+## Importing `baseline-browser-mapping`
+
+This module exposes two functions: `getCompatibleVersions()` and `getAllVersions()`, both which can be imported directly from `baseline-browser-mapping`:
+
+```javascript
+import { getCompatibleVersions } from "baseline-browser-mapping";
+```
+
+If you want to load the script and data directly in a web page without hosting it yourself, consider using a CDN:
+
+```html
+<script type="module">
+  import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+</script>
+```
+
+`baseline-browser-mapping` runs as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
+
+```javascript
+const { getCompatibleVersions } = require("baseline-browser-mapping/legacy");
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
@@ -30,8 +46,6 @@ To install the package, run:
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
 
 ```javascript
-import { getCompatibleVersions } from "baseline-browser-mapping";
-
 getCompatibleVersions();
 ```
 
