@@ -2,8 +2,12 @@
 
 By the [W3C WebDX Community Group](https://www.w3.org/community/webdx/) and contributors.
 
-`baseline-browser-mapping` exposes arrays of browsers compatible with Baseline Widely available and specified Baseline year feature sets.
-You can use `baseline-browser-mapping` to help you determine minimum browser version support for your chosen Baseline feature set.
+`baseline-browser-mapping` provides:
+
+- An `Array` of browsers compatible with Baseline Widely available and Baseline year feature sets via the [`getCompatibleVersions()` function](#get-baseline-widely-available-browser-versions-or-baseline-year-browser-versions).
+- An `Array`, `Object` or `CSV` as a string describing the Baseline feature set support of all browser versions included in the module's data set via the [`getAllVersions()` function](#get-data-for-all-browser-versions).
+
+You can use `baseline-browser-mapping` to help you determine minimum browser version support for your chosen Baseline feature set; or to analyse the level of support for different Baseline feature sets in your site's traffic by joining the data with your analytics data.
 
 ## Install for local development
 
@@ -11,7 +15,7 @@ To install the package, run:
 
 `npm install --save-dev baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for version selection. This package checks for updates to those modules and [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for core browser version selection, but the data is pre-packaged and minified. This package checks for updates to those modules and the supported [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `basesline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible:
 
 ```javascript
 "scripts": [
@@ -19,26 +23,28 @@ To install the package, run:
 ]
 ```
 
+If your installed version of `baseline-browser-mapping` is greater than 2 months old, you will receive a console warning advising you to update to the latest version.
+
 ## Importing `baseline-browser-mapping`
 
 This module exposes two functions: `getCompatibleVersions()` and `getAllVersions()`, both which can be imported directly from `baseline-browser-mapping`:
 
 ```javascript
-import { getCompatibleVersions } from "baseline-browser-mapping";
+import { getCompatibleVersions, getAllVersions } from "baseline-browser-mapping";
 ```
 
 If you want to load the script and data directly in a web page without hosting it yourself, consider using a CDN:
 
 ```html
 <script type="module">
-  import { getCompatibleVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+  import { getCompatibleVersions, getAllVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
 </script>
 ```
 
-`baseline-browser-mapping` runs as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
+`baseline-browser-mapping` is packaged as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
 
 ```javascript
-const { getCompatibleVersions } = require("baseline-browser-mapping/legacy");
+const { getCompatibleVersions, getAllVersions } = require("baseline-browser-mapping/legacy");
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
@@ -76,7 +82,7 @@ Executed on 7th March 2025, the above code returns the following browser version
 ```
 
 > [!NOTE]  
-> The minimum versions of each browser are not strictly the final release before the Widely available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely available feature set.
+> The minimum versions of each browser are not necessarily the final release before the Widely available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely available feature set.
 
 ### `getCompatibleVersions()` configuration options
 
