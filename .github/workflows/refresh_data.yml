@@ -37,9 +37,7 @@ jobs:
       - name: Attempt to update data.js file
         if: steps.refresh-downstream-script.outcome == 'success'
         id: update-data-file
-        run: |
-          npm run update-data-file
-          prettier ./src/data/data.js --write
+        run: npm run update-data-file
 
       - name: Check for changes to ./src/data/data.js
         if: steps.update-data-file.outcome == 'success'

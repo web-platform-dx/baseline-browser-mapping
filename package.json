@@ -22,15 +22,15 @@
   "types": "./index.d.ts",
   "type": "module",
   "scripts": {
-    "test:format": "prettier --check .",
+    "test:format": "npx prettier --check .",
     "test:lint": "npx eslint .",
     "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
     "test:jasmine": "npx jasmine",
     "test": "npm run build && rm -rf test-bcb && npm run test:format && npm run test:lint && npx jasmine && npm run test:bcb",
-    "build": "npm run compress-data; rm -rf dist; prettier . --write; rollup -c",
+    "build": "rm -rf dist; npx prettier . --write; rollup -c",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
-    "update-data-file": "npx tsx scripts/update-data-file.ts",
+    "update-data-file": "npx tsx scripts/update-data-file.ts; npx prettier ./src/data/data.js --write",
     "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features@latest -D",
     "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'"
   },
