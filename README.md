@@ -30,21 +30,30 @@ If your installed version of `baseline-browser-mapping` is greater than 2 months
 This module exposes two functions: `getCompatibleVersions()` and `getAllVersions()`, both which can be imported directly from `baseline-browser-mapping`:
 
 ```javascript
-import { getCompatibleVersions, getAllVersions } from "baseline-browser-mapping";
+import {
+  getCompatibleVersions,
+  getAllVersions,
+} from "baseline-browser-mapping";
 ```
 
 If you want to load the script and data directly in a web page without hosting it yourself, consider using a CDN:
 
 ```html
 <script type="module">
-  import { getCompatibleVersions, getAllVersions } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
+  import {
+    getCompatibleVersions,
+    getAllVersions,
+  } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
 </script>
 ```
 
 `baseline-browser-mapping` is packaged as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
 
 ```javascript
-const { getCompatibleVersions, getAllVersions } = require("baseline-browser-mapping/legacy");
+const {
+  getCompatibleVersions,
+  getAllVersions,
+} = require("baseline-browser-mapping/legacy");
 ```
 
 ## Get Baseline Widely available browser versions or Baseline year browser versions
