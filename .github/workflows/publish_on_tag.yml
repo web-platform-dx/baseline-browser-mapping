@@ -1,4 +1,4 @@
-name: Release
+name: Publish to NPM on new tag
 
 on:
   workflow_dispatch:

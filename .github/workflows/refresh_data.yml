@@ -1,4 +1,4 @@
-name: Refresh downstream-browsers.json
+name: Refresh data sources
 
 on:
   schedule:

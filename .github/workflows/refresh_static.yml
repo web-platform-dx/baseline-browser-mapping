@@ -1,4 +1,4 @@
-name: Refresh static resources
+name: Refresh static assets
 
 on:
   schedule:
