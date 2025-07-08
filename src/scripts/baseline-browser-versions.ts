@@ -1,9 +1,4 @@
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
-
-const bcdBrowsers = require("@mdn/browser-compat-data");
-const otherBrowsers = require("../data/downstream-browsers.json");
-import { features } from "web-features";
+import { features, bcdBrowsers, otherBrowsers } from "./expose-data.js";
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -15,19 +10,7 @@ const bcdCoreBrowserNames: string[] = [
   "safari_ios",
 ];
 
-type BrowserData = {
-  [key: string]: {
-    releases: {
-      [key: string]: {
-        status: string;
-        release_date?: string;
-      };
-    };
-  };
-};
-
 type Browser = {
-  name: string;
   releases: {
     [version: string]: {
       status: string;
@@ -38,10 +21,14 @@ type Browser = {
   };
 };
 
+type BrowserData = {
+  [key: string]: Browser;
+};
+
 type BrowserVersion = {
   browser: string;
   version: string;
-  release_date: string;
+  release_date?: string;
   engine?: string;
   engine_version?: string;
 };
@@ -60,13 +47,12 @@ type NestedBrowserVersions = {
 
 type Feature = {
   id: string;
-  name: string;
   baseline_low_date: string;
   support: object;
 };
 
 const coreBrowserData: [string, Browser][] = Object.entries(
-  bcdBrowsers.browsers as BrowserData,
+  bcdBrowsers as BrowserData,
 ).filter(([browserName]) => bcdCoreBrowserNames.includes(browserName)) as [
   string,
   Browser,
@@ -87,13 +73,10 @@ const bcdDownstreamBrowserNames: string[] = [
   "opera",
 ];
 const downstreamBrowserData: [string, Browser][] = [
-  ...(Object.entries(bcdBrowsers.browsers as BrowserData).filter(
-    ([browserName]) => bcdDownstreamBrowserNames.includes(browserName),
+  ...(Object.entries(bcdBrowsers as BrowserData).filter(([browserName]) =>
+    bcdDownstreamBrowserNames.includes(browserName),
   ) as [string, Browser][]),
-  ...(Object.entries(otherBrowsers.browsers as BrowserData) as [
-    string,
-    Browser,
-  ][]),
+  ...(Object.entries(otherBrowsers as BrowserData) as [string, Browser][]),
 ];
 
 const acceptableStatuses: string[] = [
@@ -117,59 +100,42 @@ const stripLTEPrefix = (str: string): string => {
 };
 
 const compareVersions = (
-  incomingVersionString: string,
-  previousVersionString: string,
-): number => {
-  if (incomingVersionString === previousVersionString) {
+  nextVersion: string,
+  prevVersion: string,
+): 1 | 0 | -1 => {
+  if (nextVersion === prevVersion) {
     return 0;
   }
 
-  let [incomingVersionStringMajor, incomingVersionStringMinor] =
-    incomingVersionString.split(".");
-  let [previousVersionStringMajor, previousVersionStringMinor] =
-    previousVersionString.split(".");
+  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
+  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
 
-  if (!incomingVersionStringMajor || !previousVersionStringMajor) {
-    throw new Error(
-      "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
-    );
+  if (isNaN(nextMajor) || isNaN(nextMinor)) {
+    throw new Error(`Invalid version: ${nextVersion}`);
+  }
+  if (isNaN(prevMajor) || isNaN(prevMinor)) {
+    throw new Error(`Invalid version: ${prevVersion}`);
   }
 
-  if (
-    parseInt(incomingVersionStringMajor) > parseInt(previousVersionStringMajor)
-  ) {
-    return 1;
+  if (nextMajor !== prevMajor) {
+    return nextMajor > prevMajor ? 1 : -1;
   }
-
-  if (incomingVersionStringMinor) {
-    if (
-      parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
-      (!previousVersionStringMinor ||
-        parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
-    ) {
-      return 1;
-    }
+  if (nextMinor !== prevMinor) {
+    return nextMinor > prevMinor ? 1 : -1;
   }
-  return -1;
+  return 0;
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
   return Object.entries(features)
     .filter(
-      ([feature_id, feature]) =>
+      ([, feature]) =>
         feature.status.baseline_low_date &&
         new Date(feature.status.baseline_low_date) <= date,
     )
     .map(([feature_id, feature]) => {
       return {
         id: feature_id,
-        name: feature.name,
         baseline_low_date: feature.status.baseline_low_date as string,
         support: feature.status.support,
       };
