@@ -26,14 +26,15 @@ jobs:
         run: npm ci
 
       - name: Run refresh-static.ts
-        id: refresh-downstream-script
-        run: npm run refresh-static
+        id: refresh-static-script
+        run: |
+          npm run refresh-static
+          git diff --compact-summary
 
       - name: check for diff
-        if: steps.refresh-downstream-script.outcome == 'success'
+        if: steps.refresh-static-script.outcome == 'success'
         id: check-for-diff
         run: |
-          git diff --compact-summary
           if [[ -n "$(git diff)" ]]; then
             echo "changes-available=TRUE" >> $GITHUB_OUTPUT
           else
