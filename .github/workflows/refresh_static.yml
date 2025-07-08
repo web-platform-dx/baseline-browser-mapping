@@ -48,7 +48,6 @@ jobs:
           echo "changes have occurred, committing to main"
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          npm run prepare
           git add .
           git commit -m 'Updating static site'
           git push origin main
