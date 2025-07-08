@@ -9,7 +9,7 @@ env:
   package_dir: "/"
 
 jobs:
-  refresh-downstream-browsers-json:
+  refresh-static-assets:
     runs-on: ubuntu-latest
 
     permissions:
