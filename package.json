@@ -31,12 +31,12 @@
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
     "update-data-file": "npx tsx scripts/update-data-file.ts",
-    "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features -D",
+    "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features@latest -D",
     "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@mdn/browser-compat-data": "^6.0.28",
+    "@mdn/browser-compat-data": "^6.0.29",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.3",
     "@types/node": "^22.15.17",
