@@ -27,8 +27,12 @@ jobs:
 
       - name: Run refresh-static.ts
         id: refresh-downstream-script
+        run: npm run refresh-static
+
+      - name: check for diff
+        if: steps.refresh-downstream-script.outcome == 'successs'
+        id: check-for-diff
         run: |
-          npm run refresh-static
           git diff --compact-summary
           if [[ -n "$(git diff)" ]]; then
             echo "changes-available=TRUE" >> $GITHUB_OUTPUT
@@ -37,7 +41,7 @@ jobs:
           fi
 
       - name: Push changes to main
-        if: steps.refresh-downstream-script.outputs.changes-available == 'TRUE'
+        if: steps.check-for-diff.outputs.changes-available == 'TRUE'
         id: push-to-main
         run: |
           echo "changes have occurred, committing to main"

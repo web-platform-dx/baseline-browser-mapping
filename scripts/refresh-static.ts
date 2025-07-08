@@ -102,3 +102,5 @@ writeFileSync(
   }).toString(),
   { encoding: "utf-8" },
 );
+
+console.log("finished running refresh-static")
