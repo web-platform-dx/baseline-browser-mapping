@@ -29,6 +29,7 @@ jobs:
         id: refresh-downstream-script
         run: |
           npm run refresh-static
+          git diff --compact-summary
           if [[ -n "$(git diff)" ]]; then
             echo "changes-available=TRUE" >> $GITHUB_OUTPUT
           else
