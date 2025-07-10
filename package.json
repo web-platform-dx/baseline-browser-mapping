@@ -19,7 +19,7 @@
     "README.md",
     "CONTRIBUTING.md"
   ],
-  "types": "./index.d.ts",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
     "test:format": "npx prettier --check .",
