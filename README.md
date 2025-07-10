@@ -47,15 +47,6 @@ If you want to load the script and data directly in a web page without hosting i
 </script>
 ```
 
-`baseline-browser-mapping` is packaged as an ES module by default. If you need to run it in a legacy environment that doesn't support ES modules, use the `/legacy` version:
-
-```javascript
-const {
-  getCompatibleVersions,
-  getAllVersions,
-} = require("baseline-browser-mapping/legacy");
-```
-
 ## Get Baseline Widely available browser versions or Baseline year browser versions
 
 To get the current list of minimum browser versions compatible with Baseline Widely available features from the core browser set, call the `getCompatibleVersions()` function:
@@ -90,7 +81,7 @@ Executed on 7th March 2025, the above code returns the following browser version
 ];
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > The minimum versions of each browser are not necessarily the final release before the Widely available cutoff date of `TODAY - 30 MONTHS`. Some earlier versions will have supported the full Widely available feature set.
 
 ### `getCompatibleVersions()` configuration options
@@ -138,9 +129,9 @@ Returns the following versions:
 ];
 ```
 
-> [!NOTE]  
-> The minimum version of each browser is not necessarily the final version released in that calendar year. In the above example, Firefox 84 was the final version released in 2020; however Firefox 83 supported all of the features that were interoperable at the end of 2020.  
-> [!WARNING]  
+> [!NOTE]
+> The minimum version of each browser is not necessarily the final version released in that calendar year. In the above example, Firefox 84 was the final version released in 2020; however Firefox 83 supported all of the features that were interoperable at the end of 2020.
+> [!WARNING]
 > You cannot use `targetYear` and `widelyAavailableDate` together. Please only use one of these options at a time.
 
 #### `widelyAvailableOnDate`
@@ -153,7 +144,7 @@ getCompatibleVersions({
 });
 ```
 
-> [!TIP]  
+> [!TIP]
 > This option is useful if you provide a versioned library that targets Baseline Widely available on each version's release date and you need to provide a statement on minimum supported browser versions in your documentation.
 
 #### `includeDownstreamBrowsers`
@@ -374,7 +365,7 @@ Shows UC Browser Mobile 13.8 implementing Chromium 100, and:
 
 Shows Yandex Browser Mobile 24.10 implementing Chromium 128. The Chromium version from this string is mapped to the corresponding Chrome version from MDN `browser-compat-data`.
 
-> [!NOTE]  
+> [!NOTE]
 > Where possible, approximate release dates have been included based on useragents.io "first seen" data. useragents.io does not have "first seen" dates prior to June 2020. However, these browsers' Baseline compatibility is determined by their Chromium version, so their release dates are more informative than critical.
 
 This data is updated on a daily basis using a [script](https://github.com/web-platform-dx/web-features/tree/main/scripts/refresh-downstream.ts) triggered by a GitHub [action](https://github.com/web-platform-dx/web-features/tree/main/.github/workflows/refresh_downstream.yml). Useragents.io provides a private API for this module which exposes the last 7 days of newly seen user agents for the currently tracked browsers. If a new major version of one of the tracked browsers is encountered with a Chromium version that meets or exceeds the previous latest version of that browser, it is added to the [src/data/downstream-browsers.json](src/data/downstream-browsers.json) file with the date it was first seen by useragents.io as its release date.
@@ -398,5 +389,5 @@ This data is updated on a daily basis using a [script](https://github.com/web-pl
 | UC Browser Mobile     | `uc_android`              | `false` | useragents.io             |
 | Yandex Browser Mobile | `ya_android`              | `false` | useragents.io             |
 
-> [!NOTE]  
+> [!NOTE]
 > All the non-core browsers currently included implement Chromium. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium version they implement, not their release date.
