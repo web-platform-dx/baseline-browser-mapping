@@ -1,4 +1,7 @@
-import { getCompatibleVersions, getAllVersions } from "../../dist/index.js";
+import {
+  getCompatibleVersions,
+  getAllVersions,
+} from "baseline-browser-mapping";
 
 describe("getCompatibleVersions default", () => {
   it("Returns 7 browsers by default", () => {
