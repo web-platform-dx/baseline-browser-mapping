@@ -5368,28 +5368,12 @@ const data = {
     [
       "wasm-multi-value",
       "2020-10-20",
-      {
-        c: "86",
-        ca: "86",
-        e: "86",
-        f: "78",
-        fa: "79",
-        s: "≤13.1",
-        si: "≤13.4",
-      },
+      { c: "86", ca: "86", e: "86", f: "78", fa: "79", s: "13.1", si: "13.4" },
     ],
     [
       "wasm-mutable-globals",
-      "≤2020-03-24",
-      {
-        c: "69",
-        ca: "69",
-        e: "79",
-        f: "62",
-        fa: "62",
-        s: "≤13.1",
-        si: "≤13.4",
-      },
+      "2020-03-24",
+      { c: "69", ca: "69", e: "79", f: "62", fa: "62", s: "13.1", si: "13.4" },
     ],
     [
       "wasm-non-trapping-float-to-int",
@@ -5683,5 +5667,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1751986033477;
+const lastUpdated = 1752156654469;
 export { data, lastUpdated };
