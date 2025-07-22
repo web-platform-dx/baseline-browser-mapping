@@ -22,13 +22,15 @@ const { values } = parseArgs({
 if (values.help) {
   console.log(
     `
-Get Baseline Widely available browser versions or Baseline year browser versions
+Get Baseline Widely available browser versions or Baseline year browser versions.
 
 Usage: baseline-browser-mapping [options]
 
 Options:
-      --target-year                   Pass a year between 2015 and the current year to get browser versions compatible with all Newly Available features as of the end of the year specified.
-      --widely-available-on-date      Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely available on the specified date.
+      --target-year                   Pass a year between 2015 and the current year to get browser versions compatible 
+                                      with all Newly Available features as of the end of the year specified.
+      --widely-available-on-date      Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely 
+                                      available on the specified date.
       --include-downstream-browsers   Whether to include browsers that use the same engines as a core Baseline browser.
       --list-all-compatible-versions  Whether to include only the minimum compatible browser versions or all compatible versions.
   -h, --help                          Show help
@@ -36,6 +38,8 @@ Options:
 Examples:
   npx baseline-browser-mapping --target-year 2020
   npx baseline-browser-mapping --widely-available-on-date 2023-04-05
+  npx baseline-browser-mapping --include-downstream-browsers
+  npx baseline-browser-mapping --list-all-compatible-versions
 `.trim(),
   );
   exit(0);
