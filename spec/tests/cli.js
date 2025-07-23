@@ -14,7 +14,9 @@ describe("CLI", () => {
       "npx baseline-browser-mapping --target-year 2020",
       (error, stdout, stderr) => {
         expect(error).toBe(null);
-        expect(stdout).toContain("chrome");
+        expect(stdout).toContain(
+          "{ browser: 'chrome', version: '87', release_date: '2020-11-19' }",
+        );
         done();
       },
     );
@@ -25,7 +27,9 @@ describe("CLI", () => {
       "npx baseline-browser-mapping --widely-available-on-date 2023-04-05",
       (error, stdout, stderr) => {
         expect(error).toBe(null);
-        expect(stdout).toContain("chrome");
+        expect(stdout).toContain(
+          "{ browser: 'chrome', version: '85', release_date: '2020-09-16' }",
+        );
         done();
       },
     );

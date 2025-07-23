@@ -5,3 +5,4 @@ baseline-browser-mapping-*.tgz
 .DS_Store
 .idx/
 .vscode/
+.idea/

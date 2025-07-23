@@ -190,10 +190,7 @@ const getSubsequentVersions = (
     if (bcdBrowser) {
       let sortedVersions = Object.entries(bcdBrowser[1].releases)
         .filter(([, versionData]) => {
-          if (!acceptableStatuses.includes(versionData.status)) {
-            return false;
-          }
-          return true;
+          return acceptableStatuses.includes(versionData.status);
         })
         .sort((a, b) => {
           return compareVersions(a[0], b[0]);
@@ -283,7 +280,7 @@ const getDownstreamBrowsers = (
     );
   }
 
-  let downstreamArray: BrowserVersion[] = new Array();
+  let downstreamArray: BrowserVersion[] = [];
 
   downstreamBrowserData.forEach(([browserName, browserData]) => {
     if (!browserData.releases) return;
@@ -295,13 +292,10 @@ const getDownstreamBrowsers = (
         if (versionData.engine != "Blink") {
           return false;
         }
-        if (
+        return !(
           versionData.engine_version &&
           parseInt(versionData.engine_version) < parseInt(minimumChromeVersion!)
-        ) {
-          return false;
-        }
-        return true;
+        );
       })
       .sort((a, b) => {
         return compareVersions(a[0], b[0]);
@@ -362,7 +356,7 @@ type Options = {
 /**
  * Returns browser versions compatible with specified Baseline targets.
  * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
- * Takes an optional configuraation object `Object` with four optional properties:
+ * Takes an optional configuration object `Object` with four optional properties:
  * - `listAllCompatibleVersions`: `false` (default) or `false`
  * - `includeDownstreamBrowsers`: `false` (default) or `false`
  * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
@@ -422,7 +416,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
 type AllVersionsOptions = {
   /**
-   * Whether to return the output as a Javascript `Array` (`array`) or a CSV string (`csv`).
+   * Whether to return the output as a JavaScript `Array` (`array`) or a CSV string (`csv`).
    * Defaults to `array`.
    */
   outputFormat?: string;
@@ -492,7 +486,7 @@ export function getAllVersions(
     listAllCompatibleVersions: true,
   });
 
-  const outputArray: AllBrowsersBrowserVersion[] = new Array();
+  const outputArray: AllBrowsersBrowserVersion[] = [];
 
   bcdCoreBrowserNames.forEach((browserName) => {
     let thisBrowserAllVersions = allVersions
@@ -521,10 +515,8 @@ export function getAllVersions(
             : thisBrowserAllVersions.slice(0, sliceIndex);
 
         subArray.forEach((version) => {
-          let isWaCcompatible =
-            compareVersions(version.version, waVersion) >= 0 ? true : false;
-          let isNaCompatible =
-            compareVersions(version.version, naVersion) >= 0 ? true : false;
+          let isWaCompatible = compareVersions(version.version, waVersion) >= 0;
+          let isNaCompatible = compareVersions(version.version, naVersion) >= 0;
 
           let versionToPush: AllBrowsersBrowserVersion = {
             ...version,
@@ -532,12 +524,12 @@ export function getAllVersions(
           };
 
           if (options.useSupports) {
-            if (isWaCcompatible) versionToPush.supports = "widely";
+            if (isWaCompatible) versionToPush.supports = "widely";
             if (isNaCompatible) versionToPush.supports = "newly";
           } else {
             versionToPush = {
               ...versionToPush,
-              wa_compatible: isWaCcompatible,
+              wa_compatible: isWaCompatible,
             };
           }
 
