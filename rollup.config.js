@@ -24,4 +24,16 @@ export default [
       terser(),
     ],
   },
+  {
+    input: "src/cli.ts",
+    output: {
+      format: "es",
+      file: "dist/cli.js",
+    },
+    plugins: [
+      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
+      terser(),
+    ],
+    external: ["node:util", "node:process"],
+  },
 ];
