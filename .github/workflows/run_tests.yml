@@ -1,0 +1,30 @@
+name: Run tests
+
+on:
+  workflow_dispatch:
+
+env:
+  package_dir: "/"
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install environment
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: clean up
+        run: rm -rf test-bcb dist node_modules
