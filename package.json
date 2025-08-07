@@ -16,9 +16,9 @@
   },
   "files": [
     "dist/*",
+    "!dist/scripts/*",
     "LICENSE.txt",
-    "README.md",
-    "CONTRIBUTING.md"
+    "README.md"
   ],
   "types": "./dist/index.d.ts",
   "type": "module",
