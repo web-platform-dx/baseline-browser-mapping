@@ -34,6 +34,6 @@ export default [
       typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
       terser(),
     ],
-    external: ["node:util", "node:process"],
+    external: ["node:util", "node:process", "./index.js"],
   },
 ];
