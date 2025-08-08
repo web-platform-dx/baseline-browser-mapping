@@ -356,7 +356,7 @@ type Options = {
 /**
  * Returns browser versions compatible with specified Baseline targets.
  * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
- * Takes an optional configuration object `Object` with four optional properties:
+ * Takes an optional configuration `Object` with four optional properties:
  * - `listAllCompatibleVersions`: `false` (default) or `false`
  * - `includeDownstreamBrowsers`: `false` (default) or `false`
  * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
@@ -416,8 +416,8 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
 type AllVersionsOptions = {
   /**
-   * Whether to return the output as a JavaScript `Array` (`array`) or a CSV string (`csv`).
-   * Defaults to `array`.
+   * Whether to return the output as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
+   * Defaults to `"array"`.
    */
   outputFormat?: string;
   /**
@@ -433,10 +433,11 @@ type AllVersionsOptions = {
 };
 
 /**
- * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
- * Takes an object as an argument with two optional properties:
+ * Returns all browser versions known to this module with their level of Baseline support as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
+ * Takes an optional configuration `Object` with three optional properties:
  * - `includeDownstreamBrowsers`: `true` (default) or `false`
- * - `outputFormat`: `array` (default), `object` or `csv`
+ * - `outputFormat`: `"array"` (default), `"object"` or `"csv"`
+ * - `useSupports`: `false` (default) or `true`, replaces `wa_compatible` property with optional `supports` property which returns `widely` or `newly` available when present.
  */
 export function getAllVersions(
   userOptions?: AllVersionsOptions,
