@@ -433,7 +433,7 @@ type AllVersionsOptions = {
 };
 
 /**
- * Returns all browser versions known to this module with their level of Baseline support either as an `Array` or a `String` CSV.
+ * Returns all browser versions known to this module with their level of Baseline support as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
  * Takes an optional configuration `Object` with three optional properties:
  * - `includeDownstreamBrowsers`: `true` (default) or `false`
  * - `outputFormat`: `"array"` (default), `"object"` or `"csv"`
