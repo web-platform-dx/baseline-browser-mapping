@@ -1,8 +1,8 @@
 import {
-  data,
-  lastUpdated,
   BrowserVersionFlat,
   CompressedSupportObject,
+  data,
+  lastUpdated,
 } from "../data/data.js";
 
 const twoMonthAgos = new Date().setMonth(new Date().getMonth() - 2);
@@ -92,14 +92,13 @@ const expandBrowserVersions = (bcdBrowsersFlat: {
       }
       const releasesObj = browsersOutObject[browser]["releases"];
       data.releases.forEach((release) => {
-        const releaseToInsert: BrowserVersionKeyed = {
+        releasesObj[release[0]] = {
           version: release[0],
           release_date: release[1] == "u" ? "unknown" : release[1],
           status: statusMapping[release[2]],
           engine: release[3] ? engineMapping[release[3]] : undefined,
           engine_version: release[4],
         };
-        releasesObj[release[0]] = releaseToInsert;
       });
     }
   });

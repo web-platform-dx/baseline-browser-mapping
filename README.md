@@ -344,6 +344,14 @@ The outputs of `getAllVersions()` are available as JSON or CSV files generated o
 
 These files are updated on a daily basis.
 
+## CLI
+
+`baseline-browser-mapping` includes a command line interface that exposes the same data and options as the `getCompatibleVersions()` function. To learn more about using the CLI, run:
+
+```sh
+npx baseline-browser-mapping --help
+```
+
 ## Downstream browsers
 
 ### Limitations
