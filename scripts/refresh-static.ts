@@ -1,4 +1,4 @@
-import { getAllVersions } from "baseline-browser-mapping";
+import { getAllVersions } from "../src/index";
 
 import { writeFileSync } from "fs";
 
