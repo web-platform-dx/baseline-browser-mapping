@@ -51,3 +51,21 @@ jobs:
           git add .
           git commit -m 'Updating static site'
           git push origin main
+      
+      - name: Setup Pages
+        id: setup-pages
+        if: steps.push-to-main.outcome == 'success'
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        if: steps.setup-pages.outcome == 'success'
+        id: upload
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload contents of static folder
+          path: "./static/"
+
+      - name: Deploy to GitHub Pages
+        if: steps.upload.outcome == 'success'
+        id: deploy
+        uses: actions/deploy-pages@v4
