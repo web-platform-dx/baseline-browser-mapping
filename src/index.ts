@@ -89,6 +89,20 @@ const acceptableStatuses: string[] = [
 ];
 let suppressPre2015Warning: boolean = false;
 
+const kaiOSWarning = (options: Options | AllVersionsOptions) => {
+  if (
+    options.includeDownstreamBrowsers === false &&
+    options.includeKaiOS === true
+  ) {
+    console.log(
+      new Error(
+        "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
+      ),
+    );
+    process.exit(1);
+  }
+};
+
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
     return str;
@@ -264,66 +278,75 @@ const getCoreVersionsByDate = (
 const getDownstreamBrowsers = (
   inputArray: BrowserVersion[] = [],
   listAllCompatibleVersions: boolean = true,
+  includeKaiOS: boolean = false,
 ): BrowserVersion[] => {
-  let minimumChromeVersion: string | undefined = undefined;
-  if (inputArray && inputArray.length > 0) {
-    minimumChromeVersion = inputArray
-      .filter((browser: BrowserVersion) => browser.browser === "chrome")
-      .sort((a: BrowserVersion, b: BrowserVersion) => {
-        return compareVersions(a.version, b.version);
-      })[0]?.version;
-  }
+  const getMinimumVersion = (browserName: string): string | undefined => {
+    return inputArray && inputArray.length > 0
+      ? inputArray
+          .filter((browser: BrowserVersion) => browser.browser === browserName)
+          .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
+      : undefined;
+  };
 
-  if (!minimumChromeVersion) {
+  const minimumChromeVersion = getMinimumVersion("chrome");
+  const minimumFirefoxVersion = getMinimumVersion("firefox");
+
+  if (!minimumChromeVersion && !minimumFirefoxVersion) {
     throw new Error(
-      "There are no browser versions compatible with Baseline before Chrome",
+      "There are no browser versions compatible with Baseline before Chrome and Firefox",
     );
   }
 
   let downstreamArray: BrowserVersion[] = [];
 
-  downstreamBrowserData.forEach(([browserName, browserData]) => {
-    if (!browserData.releases) return;
-    let sortedAndFilteredVersions = Object.entries(browserData.releases)
-      .filter(([, versionData]) => {
-        if (!versionData.engine) {
+  downstreamBrowserData
+    .filter(([browser]) => {
+      if (browser === "kai_os" && !includeKaiOS) {
+        return false;
+      }
+      return true;
+    })
+    .forEach(([browserName, browserData]) => {
+      if (!browserData.releases) return;
+      // Only include versions with Blink or Gecko engine and engine_version >= minimum core version
+      let sortedAndFilteredVersions = Object.entries(browserData.releases)
+        .filter(([, versionData]) => {
+          const { engine, engine_version } = versionData;
+          if (!engine || !engine_version) return false;
+
+          if (engine === "Blink" && minimumChromeVersion) {
+            return compareVersions(engine_version, minimumChromeVersion) >= 0;
+          }
+          if (engine === "Gecko" && minimumFirefoxVersion) {
+            return compareVersions(engine_version, minimumFirefoxVersion) >= 0;
+          }
           return false;
-        }
-        if (versionData.engine != "Blink") {
-          return false;
-        }
-        return !(
-          versionData.engine_version &&
-          parseInt(versionData.engine_version) < parseInt(minimumChromeVersion!)
-        );
-      })
-      .sort((a, b) => {
-        return compareVersions(a[0], b[0]);
-      });
+        })
+        .sort((a, b) => compareVersions(a[0], b[0]));
 
-    for (let i = 0; i < sortedAndFilteredVersions.length; i++) {
-      const versionEntry = sortedAndFilteredVersions[i];
-      if (versionEntry) {
-        const [versionNumber, versionData] = versionEntry;
-        let outputArray: BrowserVersion = {
-          browser: browserName,
-          version: versionNumber,
-          release_date: versionData.release_date ?? "unknown",
-        };
+      for (let i = 0; i < sortedAndFilteredVersions.length; i++) {
+        const versionEntry = sortedAndFilteredVersions[i];
+        if (versionEntry) {
+          const [versionNumber, versionData] = versionEntry;
+          let outputArray: BrowserVersion = {
+            browser: browserName,
+            version: versionNumber,
+            release_date: versionData.release_date ?? "unknown",
+          };
 
-        if (versionData.engine && versionData.engine_version) {
-          outputArray.engine = versionData.engine;
-          outputArray.engine_version = versionData.engine_version;
-        }
+          if (versionData.engine && versionData.engine_version) {
+            outputArray.engine = versionData.engine;
+            outputArray.engine_version = versionData.engine_version;
+          }
 
-        downstreamArray.push(outputArray);
+          downstreamArray.push(outputArray);
 
-        if (!listAllCompatibleVersions) {
-          break;
+          if (!listAllCompatibleVersions) {
+            break;
+          }
         }
       }
-    }
-  });
+    });
 
   return downstreamArray;
 };
@@ -351,6 +374,13 @@ type Options = {
    * > NOTE: cannot be used with `widelyAvailableOnDate`.
    */
   targetYear?: number;
+  /**
+   * Pass a boolean that determines whether KaiOS is included in browser mappings.  KaiOS implements
+   * the Gecko engine used in Firefox.  However, KaiOS also has a different interaction paradigm to
+   * other browsers and requires extra consideration beyond simple feature compatibility to provide
+   * an optimal user experience.  Defaults to `false`.
+   */
+  includeKaiOS?: boolean;
 };
 
 /**
@@ -372,9 +402,12 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
       incomingOptions.includeDownstreamBrowsers ?? false,
     widelyAvailableOnDate: incomingOptions.widelyAvailableOnDate ?? undefined,
     targetYear: incomingOptions.targetYear ?? undefined,
+    includeKaiOS: incomingOptions.includeKaiOS ?? false,
   };
 
   let targetDate: Date = new Date();
+
+  kaiOSWarning(options);
 
   if (!options.widelyAvailableOnDate && !options.targetYear) {
     targetDate = new Date();
@@ -409,6 +442,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
       ...getDownstreamBrowsers(
         coreBrowserArray,
         options.listAllCompatibleVersions,
+        options.includeKaiOS,
       ),
     ];
   }
@@ -430,6 +464,12 @@ type AllVersionsOptions = {
    * Defaults to `false`
    */
   useSupports?: boolean;
+  /**
+   * Whether to include KaiOS in the output. KaiOS implements the Gecko engine used in Firefox.
+   * However, KaiOS also has a different interaction paradigm to other browsers and requires extra
+   * consideration beyond simple feature compatibility to provide an optimal user experience.
+   */
+  includeKaiOS?: boolean;
 };
 
 /**
@@ -451,7 +491,10 @@ export function getAllVersions(
     includeDownstreamBrowsers:
       incomingOptions.includeDownstreamBrowsers ?? false,
     useSupports: incomingOptions.useSupports ?? false,
+    includeKaiOS: incomingOptions.includeKaiOS ?? false,
   };
+
+  kaiOSWarning(options);
 
   let nextYear = new Date().getFullYear() + 1;
 
@@ -546,7 +589,11 @@ export function getAllVersions(
   });
 
   if (options.includeDownstreamBrowsers) {
-    let downstreamBrowsers = getDownstreamBrowsers(outputArray);
+    let downstreamBrowsers = getDownstreamBrowsers(
+      outputArray,
+      true,
+      options.includeKaiOS,
+    );
 
     downstreamBrowsers.forEach((version: BrowserVersion) => {
       let correspondingChromiumVersion = outputArray.find(

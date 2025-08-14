@@ -8,6 +8,16 @@ on:
 env:
   package_dir: "/"
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   refresh-static-assets:
     runs-on: ubuntu-latest
@@ -51,7 +61,7 @@ jobs:
           git add .
           git commit -m 'Updating static site'
           git push origin main
-      
+
       - name: Setup Pages
         id: setup-pages
         if: steps.push-to-main.outcome == 'success'

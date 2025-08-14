@@ -49,6 +49,15 @@ describe("getCompatibleVersions default", () => {
       ).version,
     ).toBe("20.12");
   });
+
+  it("Includes KaiOS when includeKaiOS: true is used", () => {
+    expect(
+      getCompatibleVersions({
+        includeDownstreamBrowsers: true,
+        includeKaiOS: true,
+      }).find((browser) => browser.browser === "kai_os"),
+    ).not.toBe(undefined);
+  });
 });
 
 describe("getAllVersions default", () => {

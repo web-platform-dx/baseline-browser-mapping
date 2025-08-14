@@ -14,6 +14,7 @@ const { values } = parseArgs({
     "widely-available-on-date": { type: "string" },
     "include-downstream-browsers": { type: "boolean" },
     "list-all-compatible-versions": { type: "boolean" },
+    "include-kaios": { type: "boolean" },
     help: { type: "boolean", short: "h" },
   },
   strict: true,
@@ -32,6 +33,7 @@ Options:
       --widely-available-on-date      Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely 
                                       available on the specified date.
       --include-downstream-browsers   Whether to include browsers that use the same engines as a core Baseline browser.
+      --include-kaios                 Whether to include KaiOS in downstream browsers.  Requires --include-downstream-browsers.
       --list-all-compatible-versions  Whether to include only the minimum compatible browser versions or all compatible versions.
   -h, --help                          Show help
 
