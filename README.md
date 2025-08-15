@@ -149,7 +149,7 @@ getCompatibleVersions({
 
 #### `includeDownstreamBrowsers`
 
-Setting `includeDownstreamBrowsers` to `true` will include browsers outside of the Baseline core browser set where it is possible to map those browsers to an upstream Chromium version:
+Setting `includeDownstreamBrowsers` to `true` will include browsers outside of the Baseline core browser set where it is possible to map those browsers to an upstream Chromium or Gecko version:
 
 ```javascript
 getCompatibleVersions({
@@ -158,6 +158,20 @@ getCompatibleVersions({
 ```
 
 For more information on downstream browsers, see [the section on downstream browsers](#downstream-browsers) below.
+
+#### `includeKaiOS`
+
+KaiOS is an operating system and app framework based on the Gecko engine from Firefox. KaiOS is based on the Gecko engine and feature support can be derived from the upstream Gecko version that each KaiOS version implements. However KaiOS requires other considerations beyond feature compatibility to ensure a good user experience as it runs on device types that do not have either mouse and keyboard or touch screen input in the way that all the other browsers supported by this module do.
+
+```javascript
+getCompatibleVersions({
+  includeDownstreamBrowsers: true,
+  includeKaiOS: true,
+});
+```
+
+> [!NOTE]
+> Including KaiOS requires you to include all downstream browsers using the `includeDownstreamBrowsers` option.
 
 #### `listAllCompatibleVersions`
 
@@ -227,7 +241,7 @@ Browser versions that do not support Widely or Newly available will not include 
 
 #### `includeDownstreamBrowsers` (in `getAllVersions()` output)
 
-As with `getCompatibleVersions()`, you can set `includeDownstreamBrowsers` to `true` to include the Chromium downstream browsers [listed below](#list-of-downstream-browsers).
+As with `getCompatibleVersions()`, you can set `includeDownstreamBrowsers` to `true` to include the Chromium and Gecko downstream browsers [listed below](#list-of-downstream-browsers).
 
 ```javascript
 getAllVersions({
@@ -251,6 +265,17 @@ Downstream browsers include the same properties as core browsers, as well as the
   },
   ...
 ]
+```
+
+#### `includeKaiOS` (in `getAllVersions()` output)
+
+As with `getCompatibleVersions()` you can include KaiOS in your output. The same requirement to have `includeDownstreamBrowsers: true` applies.
+
+```javascript
+getAllVersions({
+  includeDownstreamBrowsers: true,
+  includeKaiOS: true,
+});
 ```
 
 #### `outputFormat`
@@ -374,9 +399,11 @@ Shows UC Browser Mobile 13.8 implementing Chromium 100, and:
 Shows Yandex Browser Mobile 24.10 implementing Chromium 128. The Chromium version from this string is mapped to the corresponding Chrome version from MDN `browser-compat-data`.
 
 > [!NOTE]
-> Where possible, approximate release dates have been included based on useragents.io "first seen" data. useragents.io does not have "first seen" dates prior to June 2020. However, these browsers' Baseline compatibility is determined by their Chromium version, so their release dates are more informative than critical.
+> Where possible, approximate release dates have been included based on useragents.io "first seen" data. useragents.io does not have "first seen" dates prior to June 2020. However, these browsers' Baseline compatibility is determined by their Chromium or Gecko version, so their release dates are more informative than critical.
 
 This data is updated on a daily basis using a [script](https://github.com/web-platform-dx/web-features/tree/main/scripts/refresh-downstream.ts) triggered by a GitHub [action](https://github.com/web-platform-dx/web-features/tree/main/.github/workflows/refresh_downstream.yml). Useragents.io provides a private API for this module which exposes the last 7 days of newly seen user agents for the currently tracked browsers. If a new major version of one of the tracked browsers is encountered with a Chromium version that meets or exceeds the previous latest version of that browser, it is added to the [src/data/downstream-browsers.json](src/data/downstream-browsers.json) file with the date it was first seen by useragents.io as its release date.
+
+KaiOS is an exception - its upstream version mappings are handled separately from the other browsers because they happen very infrequently.
 
 ### List of downstream browsers
 
@@ -396,6 +423,7 @@ This data is updated on a daily basis using a [script](https://github.com/web-pl
 | QQ Browser Mobile     | `qq_android`              | `false` | useragents.io             |
 | UC Browser Mobile     | `uc_android`              | `false` | useragents.io             |
 | Yandex Browser Mobile | `ya_android`              | `false` | useragents.io             |
+| KaiOS                 | `kai_os`                  | `false` | Manual                    |
 
 > [!NOTE]
-> All the non-core browsers currently included implement Chromium. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium version they implement, not their release date.
+> All the non-core browsers currently included implement Chromium or Gecko. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium or Gecko version they implement, not their release date.
