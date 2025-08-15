@@ -55,6 +55,7 @@ describe("getCompatibleVersions default", () => {
       getCompatibleVersions({
         includeDownstreamBrowsers: true,
         includeKaiOS: true,
+        targetYear: 2020,
       }).find((browser) => browser.browser === "kai_os"),
     ).not.toBe(undefined);
   });
