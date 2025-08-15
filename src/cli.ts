@@ -55,5 +55,6 @@ console.log(
     widelyAvailableOnDate: values["widely-available-on-date"],
     includeDownstreamBrowsers: values["include-downstream-browsers"],
     listAllCompatibleVersions: values["list-all-compatible-versions"],
+    includeKaiOS: values["include-kaios"],
   }),
 );
