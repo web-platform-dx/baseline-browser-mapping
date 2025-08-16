@@ -2275,8 +2275,8 @@ const data = {
     ],
     [
       "createimagebitmap",
-      "2021-09-20",
-      { c: "50", ca: "50", e: "79", f: "42", fa: "42", s: "15", si: "15" },
+      "2023-12-11",
+      { c: "59", ca: "59", e: "79", f: "98", fa: "98", s: "17.2", si: "17.2" },
     ],
     [
       "credential-management",
@@ -4482,8 +4482,8 @@ const data = {
     ],
     [
       "scroll-into-view",
-      "2020-09-16",
-      { c: "61", ca: "61", e: "79", f: "36", fa: "36", s: "14", si: "14" },
+      "2020-01-15",
+      { c: "1", ca: "18", e: "79", f: "1", fa: "4", s: "3", si: "1" },
     ],
     [
       "scroll-snap",
@@ -5677,5 +5677,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1754748554435;
+const lastUpdated = 1755353292996;
 export { data, lastUpdated };
