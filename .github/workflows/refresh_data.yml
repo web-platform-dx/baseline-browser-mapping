@@ -14,6 +14,7 @@ jobs:
 
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v2
@@ -53,7 +54,7 @@ jobs:
         if: steps.lint-and-test.outcome == 'success'
         id: push-to-branch
         run: |
-          echo "Data changes have occured, committing to main"
+          echo "Data changes have occurred, committing to main"
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
@@ -80,6 +81,3 @@ jobs:
           npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-permissions:
-  id-token: write
