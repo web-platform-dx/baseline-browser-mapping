@@ -2139,6 +2139,11 @@ const data = {
       { c: "50", ca: "50", e: "12", f: "71", fa: "79", s: "9", si: "9" },
     ],
     [
+      "composed-ranges",
+      "2025-08-19",
+      { c: "137", ca: "137", e: "137", f: "142", fa: "142", s: "17", si: "17" },
+    ],
+    [
       "composition-events",
       "2017-04-19",
       { c: "26", ca: "26", e: "12", f: "53", fa: "53", s: "7", si: "7" },
@@ -5681,5 +5686,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1755699021370;
+const lastUpdated = 1755785424708;
 export { data, lastUpdated };
