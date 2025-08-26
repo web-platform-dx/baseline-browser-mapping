@@ -49,6 +49,22 @@ describe("getCompatibleVersions default", () => {
       ).version,
     ).toBe("20.12");
   });
+
+  it("Includes KaiOS 3.0 in Baseline 2020 when includeKaiOS: true is used", () => {
+    expect(
+      getCompatibleVersions({
+        includeDownstreamBrowsers: true,
+        includeKaiOS: true,
+        targetYear: 2020,
+      }),
+    ).toContain({
+      browser: "kai_os",
+      version: "3.0",
+      release_date: "2021-09-01",
+      engine: "Gecko",
+      engine_version: "84",
+    });
+  });
 });
 
 describe("getAllVersions default", () => {

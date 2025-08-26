@@ -49,6 +49,7 @@ writeFileSync(
   JSON.stringify(
     getAllVersions({
       includeDownstreamBrowsers: true,
+      includeKaiOS: true,
     }),
   ),
   { encoding: "utf-8" },
@@ -59,6 +60,7 @@ writeFileSync(
     getAllVersions({
       outputFormat: "object",
       includeDownstreamBrowsers: true,
+      includeKaiOS: true,
     }),
   ),
   { encoding: "utf-8" },
@@ -68,6 +70,7 @@ writeFileSync(
   getAllVersions({
     outputFormat: "csv",
     includeDownstreamBrowsers: true,
+    includeKaiOS: true,
   }).toString(),
   { encoding: "utf-8" },
 );
@@ -77,6 +80,7 @@ writeFileSync(
   JSON.stringify(
     getAllVersions({
       includeDownstreamBrowsers: true,
+      includeKaiOS: true,
       useSupports: true,
     }),
   ),
@@ -88,6 +92,7 @@ writeFileSync(
     getAllVersions({
       outputFormat: "object",
       includeDownstreamBrowsers: true,
+      includeKaiOS: true,
       useSupports: true,
     }),
   ),
@@ -98,6 +103,7 @@ writeFileSync(
   getAllVersions({
     outputFormat: "csv",
     includeDownstreamBrowsers: true,
+    includeKaiOS: true,
     useSupports: true,
   }).toString(),
   { encoding: "utf-8" },

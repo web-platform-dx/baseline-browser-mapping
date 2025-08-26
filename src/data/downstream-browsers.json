@@ -670,12 +670,6 @@
           "engine_version": "134",
           "status": "unknown",
           "release_date": "2025-04-23"
-        },
-        "99.9": {
-          "engine": "Blink",
-          "engine_version": "800",
-          "status": "unknown",
-          "release_date": "2025-05-27"
         }
       }
     },
@@ -1562,7 +1556,50 @@
           "release_date": "2025-07-15"
         }
       }
+    },
+    "kai_os": {
+      "name": "KaiOS",
+      "type": "mobile",
+      "upstream": "firefox_android",
+      "releases": {
+        "1.0": {
+          "engine": "Gecko",
+          "engine_version": "37",
+          "status": "unknown",
+          "release_date": "2017-03-01"
+        },
+        "2.0": {
+          "engine": "Gecko",
+          "engine_version": "48",
+          "status": "unknown",
+          "release_date": "2017-07-01"
+        },
+        "2.5": {
+          "engine": "Gecko",
+          "engine_version": "48",
+          "status": "unknown",
+          "release_date": "2017-07-01"
+        },
+        "3.0": {
+          "engine": "Gecko",
+          "engine_version": "84",
+          "status": "unknown",
+          "release_date": "2021-09-01"
+        },
+        "3.1": {
+          "engine": "Gecko",
+          "engine_version": "84",
+          "status": "unknown",
+          "release_date": "2022-03-01"
+        },
+        "4.0": {
+          "engine": "Gecko",
+          "engine_version": "123",
+          "status": "unknown",
+          "release_date": "2025-05-01"
+        }
+      }
     }
   },
-  "lastUpdated": "2025-08-17T14:08:36.165Z"
+  "lastUpdated": "2025-08-26T11:11:36.165Z"
 }
