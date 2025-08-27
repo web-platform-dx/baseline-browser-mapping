@@ -3631,8 +3631,16 @@ const data = {
     ],
     [
       "media-capabilities",
-      "2020-01-15",
-      { c: "66", ca: "66", e: "79", f: "63", fa: "63", s: "13", si: "13" },
+      "2022-04-28",
+      {
+        c: "101",
+        ca: "101",
+        e: "101",
+        f: "63",
+        fa: "63",
+        s: "15.4",
+        si: "15.4",
+      },
     ],
     [
       "media-capture",
@@ -3661,6 +3669,11 @@ const data = {
         s: "16.4",
         si: "16.4",
       },
+    ],
+    [
+      "mediastream-recording",
+      "2021-04-26",
+      { c: "49", ca: "49", e: "79", f: "25", fa: "25", s: "14.1", si: "14" },
     ],
     [
       "menu",
@@ -3840,6 +3853,11 @@ const data = {
       "object-fit",
       "2020-01-15",
       { c: "32", ca: "32", e: "79", f: "36", fa: "36", s: "10", si: "10" },
+    ],
+    [
+      "object-hasown",
+      "2022-03-14",
+      { c: "93", ca: "93", e: "93", f: "92", fa: "92", s: "15.4", si: "15.4" },
     ],
     [
       "object-object",
@@ -5479,7 +5497,7 @@ const data = {
     [
       "web-cryptography",
       "2015-07-29",
-      { c: "11", ca: "18", e: "12", f: "21", fa: "21", s: "5", si: "5" },
+      { c: "37", ca: "37", e: "12", f: "34", fa: "34", s: "11", si: "11" },
     ],
     [
       "web-locks",
@@ -5695,5 +5713,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1756204101749;
+const lastUpdated = 1756307903339;
 export { data, lastUpdated };
