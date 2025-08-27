@@ -26,7 +26,7 @@
     "baseline-browser-mapping": "./dist/cli.js"
   },
   "scripts": {
-    "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); [[ \"$output\" =~ sh:\\ ([^:]+):\\ Permission\\ denied ]] && path=\"${BASH_REMATCH[1]}\" && echo \"Permission denied for: $path\" && echo \"Removing $path ...\" && rm -rf \"$path\" || echo \"$output\"",
+    "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^sh: \\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
     "test:format": "npx prettier --check .",
     "test:lint": "npx eslint .",
     "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
