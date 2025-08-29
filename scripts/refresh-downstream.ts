@@ -43,10 +43,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
+      incomingVersionString +
+      " or " +
+      previousVersionString +
+      "",
     );
   }
 
@@ -59,10 +59,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
+      parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
+        parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -95,14 +95,14 @@ const handleUas = (
       latestExistingVersion: findLatestVersion(
         existingData.browsers["qq_android"].releases,
       ),
-      regex: new RegExp("chrome|Chrome\/(\\d+).*MQQBrowser\/(\\d+\\.\\d+)"),
+      regex: new RegExp(/chrome|Chrome\/(\d+).*MQQBrowser\/(\d+.\d+)/),
     },
     {
       name: "uc_android",
       latestExistingVersion: findLatestVersion(
         existingData.browsers["uc_android"].releases,
       ),
-      regex: new RegExp("chrome|Chrome\/(\\d+).*UCBrowser\/(\\d+\\.\\d+)"),
+      regex: new RegExp(/chrome|Chrome\/(\d+).*UCBrowser\/(\d+.\d+)/),
     },
     {
       name: "ya_android",
@@ -110,7 +110,7 @@ const handleUas = (
         existingData.browsers["ya_android"].releases,
       ),
       regex: new RegExp(
-        "android|Android.*chrome|Chrome\/(\\d+).*YaBrowser\/(\\d+\\.\\d+)",
+        /android|Android.*chrome|Chrome\/(\d+).*YaBrowser\/(\d+.\d+)/,
       ),
     },
     {
@@ -118,7 +118,28 @@ const handleUas = (
       latestExistingVersion: findLatestVersion(
         existingData.browsers["kai_os"].releases,
       ),
+      regex: new RegExp(/Firefox\/(\\d+).0 KAIOS\/(\\d.\\d)/),
+    },
+    {
+      name: "kai_os",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["kai_os"].releases,
+      ),
       regex: new RegExp("Firefox\/(\\d+).0 KAIOS\/(\\d.\\d)"),
+    },
+    {
+      name: "fb_android",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["fb_android"].releases,
+      ),
+      regex: new RegExp(/[Chrome|chrome]\/(\d+).*FB4A;FBAV\/(\d+)./),
+    },
+    {
+      name: "ig_android",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["ig_android"].releases,
+      ),
+      regex: new RegExp(/[Chrome|chrome]\/(\d+).*Instagram (\d+)./),
     },
   ];
 
@@ -145,9 +166,9 @@ const handleUas = (
               browser.latestExistingVersion?.[0] ?? "",
             ) === 1 &&
             parseInt(chromiumVersion) >=
-              parseInt(
-                browser.latestExistingVersion?.[1].engine_version ?? "",
-              ) &&
+            parseInt(
+              browser.latestExistingVersion?.[1].engine_version ?? "",
+            ) &&
             !Object.keys(existingData.browsers[browserName].releases).includes(
               browserVersion.toString(),
             )
