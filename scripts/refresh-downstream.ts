@@ -95,14 +95,14 @@ const handleUas = (
       latestExistingVersion: findLatestVersion(
         existingData.browsers["qq_android"].releases,
       ),
-      regex: new RegExp("chrome|Chrome\/(\\d+).*MQQBrowser\/(\\d+\\.\\d+)"),
+      regex: new RegExp(/chrome|Chrome\/(\d+).*MQQBrowser\/(\d+.\d+)/),
     },
     {
       name: "uc_android",
       latestExistingVersion: findLatestVersion(
         existingData.browsers["uc_android"].releases,
       ),
-      regex: new RegExp("chrome|Chrome\/(\\d+).*UCBrowser\/(\\d+\\.\\d+)"),
+      regex: new RegExp(/chrome|Chrome\/(\d+).*UCBrowser\/(\d+.\d+)/),
     },
     {
       name: "ya_android",
@@ -110,8 +110,22 @@ const handleUas = (
         existingData.browsers["ya_android"].releases,
       ),
       regex: new RegExp(
-        "android|Android.*chrome|Chrome\/(\\d+).*YaBrowser\/(\\d+\\.\\d+)",
+        /android|Android.*chrome|Chrome\/(\d+).*YaBrowser\/(\d+.\d+)/,
       ),
+    },
+    {
+      name: "fb_android",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["fb_android"].releases,
+      ),
+      regex: new RegExp(/[Chrome|chrome]\/(\d+).*FB4A;FBAV\/(\d+)./),
+    },
+    {
+      name: "ig_android",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["ig_android"].releases,
+      ),
+      regex: new RegExp(/[Chrome|chrome]\/(\d+).*Instagram (\d+)./),
     },
   ];
 
