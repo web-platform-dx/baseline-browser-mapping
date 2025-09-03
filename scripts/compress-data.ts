@@ -72,6 +72,7 @@ const statusMapping: object = {
   nightly: "n",
   planned: "p",
   unknown: "u",
+  esr: "e",
 };
 
 const bcdOutput = {};

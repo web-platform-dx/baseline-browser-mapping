@@ -71,6 +71,7 @@ const statusMapping: { [key: string]: string } = {
   n: "nightly",
   p: "planned",
   u: "unknown",
+  e: "esr",
 };
 
 const expandBrowserVersions = (bcdBrowsersFlat: {
