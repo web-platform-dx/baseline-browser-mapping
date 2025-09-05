@@ -15,8 +15,7 @@ if (lastUpdated < twoMonthAgos) {
 
 const featuresFlat = data.features;
 
-type FeatureKeyed = {
-  id: string;
+type FeatureFlat = {
   status: {
     baseline_low_date: string;
     support: { [key: string]: string };
@@ -44,17 +43,16 @@ const expandSupportObject = (object: CompressedSupportObject) => {
 };
 
 const expandFeatures = () => {
-  const featuresOutObject: { [key: string]: FeatureKeyed } = {};
+  const featuresOutArray: FeatureFlat[] = [];
   featuresFlat.forEach((feature) => {
-    featuresOutObject[feature[0]] = {
-      id: feature[0],
+    featuresOutArray.push({
       status: {
-        baseline_low_date: feature[1],
-        support: expandSupportObject(feature[2]),
+        baseline_low_date: feature[0],
+        support: expandSupportObject(feature[1]),
       },
-    };
+    });
   });
-  return featuresOutObject;
+  return featuresOutArray;
 };
 
 const engineMapping: { [key: string]: string } = {
