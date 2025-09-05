@@ -38,8 +38,7 @@ const compressSupportObject = (
 
 const featuresOutput = Object.entries(features)
   .filter(([, feature]) => feature.status?.baseline_low_date)
-  .map(([featureId, feature]) => [
-    featureId,
+  .map(([, feature]) => [
     feature.status?.baseline_low_date ?? "",
     feature.status.support ? compressSupportObject(feature.status.support) : {},
   ]);

@@ -113,6 +113,13 @@ const handleUas = (
         "android|Android.*chrome|Chrome\/(\\d+).*YaBrowser\/(\\d+\\.\\d+)",
       ),
     },
+    {
+      name: "kai_os",
+      latestExistingVersion: findLatestVersion(
+        existingData.browsers["kai_os"].releases,
+      ),
+      regex: new RegExp("Firefox\/(\\d+).0 KAIOS\/(\\d.\\d)"),
+    },
   ];
 
   uaObject.uas.reverse().forEach((ua) => {

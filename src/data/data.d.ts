@@ -1,5 +1,4 @@
 type FeatureFlat = [
-  id: string,
   baseline_low_date: string,
   support: CompressedSupportObject,
 ];
