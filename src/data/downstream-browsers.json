@@ -1618,7 +1618,7 @@
         }
       }
     },
-    "fb_android": {
+    "facebook_android": {
       "name": "Facebook App (Android)",
       "type": "mobile",
       "releases": {
@@ -2890,7 +2890,7 @@
         }
       }
     },
-    "ig_android": {
+    "instagram_android": {
       "name": "Instagram App (Android)",
       "type": "mobile",
       "releases": {

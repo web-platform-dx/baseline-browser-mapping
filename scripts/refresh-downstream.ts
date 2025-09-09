@@ -121,16 +121,16 @@ const handleUas = (
       regex: new RegExp(/Firefox\/(\d+).0 KAIOS\/(\d.\d)/),
     },
     {
-      name: "fb_android",
+      name: "facebook_android",
       latestExistingVersion: findLatestVersion(
-        existingData.browsers["fb_android"].releases,
+        existingData.browsers["facebook_android"].releases,
       ),
       regex: new RegExp(/[Chrome|chrome]\/(\d+).*FB4A;FBAV\/(\d+)./),
     },
     {
-      name: "ig_android",
+      name: "instagram_android",
       latestExistingVersion: findLatestVersion(
-        existingData.browsers["ig_android"].releases,
+        existingData.browsers["instagram_android"].releases,
       ),
       regex: new RegExp(/[Chrome|chrome]\/(\d+).*Instagram (\d+)./),
     },

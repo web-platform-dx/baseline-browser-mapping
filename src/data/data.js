@@ -1418,7 +1418,7 @@ const data = {
         ["4.0", "2025-05-01", "u", "g", "123"],
       ],
     },
-    fb_android: {
+    facebook_android: {
       releases: [
         ["66", "u", "u", "b", "48"],
         ["68", "u", "u", "b", "48"],
@@ -1633,7 +1633,7 @@ const data = {
         ["515", "2025-05-31", "u", "b", "137"],
       ],
     },
-    ig_android: {
+    instagram_android: {
       releases: [
         ["23", "u", "u", "b", "62"],
         ["24", "u", "u", "b", "62"],
