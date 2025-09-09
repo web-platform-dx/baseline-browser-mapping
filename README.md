@@ -424,6 +424,8 @@ KaiOS is an exception - its upstream version mappings are handled separately fro
 | UC Browser Mobile     | `uc_android`              | `false` | useragents.io             |
 | Yandex Browser Mobile | `ya_android`              | `false` | useragents.io             |
 | KaiOS                 | `kai_os`                  | `false` | Manual                    |
+| Facebook for Android  | `facebook_android`        | `false` | useragents.io             |
+| Instagram for Android | `instagram_android`       | `false` | useragents.io             |
 
 > [!NOTE]
 > All the non-core browsers currently included implement Chromium or Gecko. Their inclusion in any of the above methods is based on the Baseline feature set supported by the Chromium or Gecko version they implement, not their release date.
