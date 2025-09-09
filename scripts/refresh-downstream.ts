@@ -43,10 +43,10 @@ const compareVersions = (
   if (!incomingVersionStringMajor || !previousVersionStringMajor) {
     throw new Error(
       "One of these version strings is broken: " +
-      incomingVersionString +
-      " or " +
-      previousVersionString +
-      "",
+        incomingVersionString +
+        " or " +
+        previousVersionString +
+        "",
     );
   }
 
@@ -59,10 +59,10 @@ const compareVersions = (
   if (incomingVersionStringMinor) {
     if (
       parseInt(incomingVersionStringMajor) ==
-      parseInt(previousVersionStringMajor) &&
+        parseInt(previousVersionStringMajor) &&
       (!previousVersionStringMinor ||
         parseInt(incomingVersionStringMinor) >
-        parseInt(previousVersionStringMinor))
+          parseInt(previousVersionStringMinor))
     ) {
       return 1;
     }
@@ -159,9 +159,9 @@ const handleUas = (
               browser.latestExistingVersion?.[0] ?? "",
             ) === 1 &&
             parseInt(chromiumVersion) >=
-            parseInt(
-              browser.latestExistingVersion?.[1].engine_version ?? "",
-            ) &&
+              parseInt(
+                browser.latestExistingVersion?.[1].engine_version ?? "",
+              ) &&
             !Object.keys(existingData.browsers[browserName].releases).includes(
               browserVersion.toString(),
             )
