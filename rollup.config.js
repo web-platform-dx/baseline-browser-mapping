@@ -9,7 +9,10 @@ export default [
       dir: "dist",
     },
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
+      typescript({
+        tsconfig: "./tsconfig.json",
+        outDir: "dist",
+      }),
       terser(),
     ],
   },
@@ -20,7 +23,11 @@ export default [
       file: "dist/index.cjs",
     },
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
+      typescript({
+        tsconfig: "./tsconfig.json",
+        outDir: "dist",
+        target: "es2017",
+      }),
       terser(),
     ],
   },
