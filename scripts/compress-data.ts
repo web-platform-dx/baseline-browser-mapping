@@ -36,12 +36,20 @@ const compressSupportObject = (
   };
 };
 
-const featuresOutput = Object.entries(features)
-  .filter(([, feature]) => feature.status?.baseline_low_date)
-  .map(([, feature]) => [
-    feature.status?.baseline_low_date ?? "",
-    feature.status.support ? compressSupportObject(feature.status.support) : {},
-  ]);
+const featuresOutput = Object.entries(features).reduce(
+  (prev: any[], [, feature]) => {
+    if (feature.kind === "feature" && feature.status?.baseline_low_date) {
+      prev.push([
+        feature.status?.baseline_low_date ?? "",
+        feature.status?.support
+          ? compressSupportObject(feature.status.support)
+          : {},
+      ]);
+    }
+    return prev;
+  },
+  [],
+);
 
 const bcdBrowserNames: string[] = [
   "chrome",
@@ -57,14 +65,14 @@ const bcdBrowserNames: string[] = [
   "opera",
 ];
 
-const engineMapping: object = {
+const engineMapping: Record<string, string> = {
   WebKit: "w",
   Gecko: "g",
   Presto: "p",
   Blink: "b",
 };
 
-const statusMapping: object = {
+const statusMapping: Record<string, string> = {
   retired: "r",
   current: "c",
   beta: "b",
@@ -74,7 +82,7 @@ const statusMapping: object = {
   esr: "e",
 };
 
-const bcdOutput = {};
+const bcdOutput: { [key: string]: any } = {};
 Object.entries(bcd.browsers).forEach(([browser, data]) => {
   if (bcdBrowserNames.includes(browser)) {
     let releases = Object.entries(data.releases).map(
@@ -99,7 +107,7 @@ Object.entries(bcd.browsers).forEach(([browser, data]) => {
   }
 });
 
-const otherOutput = {};
+const otherOutput: Record<string, any> = {};
 Object.entries(other.browsers).forEach(([browser, data]) => {
   let releases = Object.entries(data.releases).map(
     ([releaseId, releaseData]) => {
