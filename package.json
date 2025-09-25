@@ -33,7 +33,7 @@
     "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
     "test:browserslist": "mkdir test-browserslist && cd test-browserslist && npm init -y && npm i ../../baseline-browser-mapping browserslist &&jq '. += {\"browserslist\":[\"baseline widely available with downstream\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-browserslist",
     "test:jasmine": "npx jasmine",
-    "test": "npm run build && npm run fix-cli-permissions && rm -rf test-browserslist test-bcb && npm run test:format && npm run test:lint && npx jasmine && npm run test:browserslist && test:bcb",
+    "test": "npm run build && npm run fix-cli-permissions && rm -rf test-browserslist test-bcb && npm run test:format && npm run test:lint && npx jasmine && npm run test:browserslist && npm run test:bcb",
     "build": "rm -rf dist; npx prettier . --write; rollup -c; rm -rf ./dist/scripts/expose-data.d.ts ./dist/cli.d.ts",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
