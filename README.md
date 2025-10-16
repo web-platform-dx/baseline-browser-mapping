@@ -25,7 +25,7 @@ To install the package, run:
 
 If your installed version of `baseline-browser-mapping` is greater than 2 months old, you will receive a console warning advising you to update to the latest version.
 
-The minimum supported NodeJS version for `baseline-browser-mapping` is v8 in alignment with `browserslist`.  For NodeJS versions earlier than v13.2, the [`require('baseline-browser-mapping')`](https://nodejs.org/api/modules.html#requireid) syntax should be used to import the module.
+The minimum supported NodeJS version for `baseline-browser-mapping` is v8 in alignment with `browserslist`. For NodeJS versions earlier than v13.2, the [`require('baseline-browser-mapping')`](https://nodejs.org/api/modules.html#requireid) syntax should be used to import the module.
 
 ## Importing `baseline-browser-mapping`
 
