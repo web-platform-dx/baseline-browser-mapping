@@ -2068,9 +2068,9 @@ const data = {
     [
       "2025-11-11",
       {
-        c: "87",
-        ca: "89",
-        e: "87",
+        c: "90",
+        ca: "90",
+        e: "90",
         f: "145",
         fa: "145",
         s: "16.4",
@@ -5511,5 +5511,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1763388641376;
+const lastUpdated = 1763647806041;
 export { data, lastUpdated };
