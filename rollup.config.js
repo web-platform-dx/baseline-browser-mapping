@@ -16,6 +16,7 @@ export default [
       }),
       terser(),
     ],
+    external: ["process"],
   },
   {
     input: "src/index.ts",
@@ -31,6 +32,7 @@ export default [
       }),
       terser(),
     ],
+    external: ["process"],
   },
   {
     input: "src/cli.ts",
@@ -42,6 +44,6 @@ export default [
       typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
       terser(),
     ],
-    external: ["node:util", "node:process", "./index.js"],
+    external: ["node:util", "process", "./index.js"],
   },
 ];

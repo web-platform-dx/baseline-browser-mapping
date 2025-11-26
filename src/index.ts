@@ -1,4 +1,49 @@
-import { features, bcdBrowsers, otherBrowsers } from "./scripts/expose-data.js";
+import {
+  features,
+  bcdBrowsers,
+  otherBrowsers,
+  lastUpdated,
+} from "./scripts/expose-data.js";
+import process from "process";
+
+try {
+  // @ts-ignore
+  if (typeof process.loadEnvFile === "function") {
+    // @ts-ignore
+    process.loadEnvFile();
+  }
+} catch (e) {
+  // ignore
+}
+
+let hasWarned = false;
+// let browserslistIgnoreOldData =
+//   process.env.BROWSERSLIST_IGNORE_OLD_DATA === "true";
+// let bbmIgnoreOldData =
+//   process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA === "true";
+
+// console.log(browserslistIgnoreOldData);
+// console.log(bbmIgnoreOldData);
+
+const checkUpdate = (targetDate: Date) => {
+  if (
+    hasWarned ||
+    process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
+    process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA
+  ) {
+    return;
+  }
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  if (targetDate > sixMonthsAgo && lastUpdated < sixMonthsAgo.getTime()) {
+    console.warn(
+      "[baseline-browser-mapping] The data in this module is over six months old. To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
+    );
+    hasWarned = true;
+  }
+};
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -431,6 +476,8 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     targetDate,
     options.listAllCompatibleVersions,
   );
+
+  checkUpdate(targetDate);
 
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;
