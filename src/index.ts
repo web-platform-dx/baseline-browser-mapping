@@ -1,4 +1,39 @@
-import { features, bcdBrowsers, otherBrowsers } from "./scripts/expose-data.js";
+import {
+  features,
+  bcdBrowsers,
+  otherBrowsers,
+  lastUpdated,
+} from "./scripts/expose-data.js";
+
+try {
+  if (typeof process.loadEnvFile === "function") {
+    process.loadEnvFile();
+  }
+} catch (e) {
+  // ignore
+}
+
+let hasWarned = false;
+
+const checkUpdate = (targetDate: Date) => {
+  if (
+    hasWarned ||
+    process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
+    process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA
+  ) {
+    return;
+  }
+
+  const twoMonthsAgo = new Date();
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+  if (targetDate > twoMonthsAgo && lastUpdated < twoMonthsAgo.getTime()) {
+    console.warn(
+      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date. To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
+    );
+    hasWarned = true;
+  }
+};
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -431,6 +466,8 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     targetDate,
     options.listAllCompatibleVersions,
   );
+
+  checkUpdate(targetDate);
 
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;

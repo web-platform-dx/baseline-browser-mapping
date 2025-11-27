@@ -5,14 +5,6 @@ import {
   lastUpdated,
 } from "../data/data.js";
 
-const twoMonthAgos = new Date().setMonth(new Date().getMonth() - 2);
-
-if (lastUpdated < twoMonthAgos) {
-  console.warn(
-    "[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
-  );
-}
-
 const featuresFlat = data.features;
 
 type FeatureFlat = {
@@ -110,4 +102,4 @@ const bcdBrowsers = expandBrowserVersions(data.bcdBrowsers);
 
 const otherBrowsers = expandBrowserVersions(data.otherBrowsers);
 
-export { features, bcdBrowsers, otherBrowsers };
+export { features, bcdBrowsers, otherBrowsers, lastUpdated };
