@@ -4,12 +4,9 @@ import {
   otherBrowsers,
   lastUpdated,
 } from "./scripts/expose-data.js";
-import process from "process";
 
 try {
-  // @ts-ignore
   if (typeof process.loadEnvFile === "function") {
-    // @ts-ignore
     process.loadEnvFile();
   }
 } catch (e) {
@@ -17,13 +14,6 @@ try {
 }
 
 let hasWarned = false;
-// let browserslistIgnoreOldData =
-//   process.env.BROWSERSLIST_IGNORE_OLD_DATA === "true";
-// let bbmIgnoreOldData =
-//   process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA === "true";
-
-// console.log(browserslistIgnoreOldData);
-// console.log(bbmIgnoreOldData);
 
 const checkUpdate = (targetDate: Date) => {
   if (
@@ -34,12 +24,12 @@ const checkUpdate = (targetDate: Date) => {
     return;
   }
 
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const twoMonthsAgo = new Date();
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
-  if (targetDate > sixMonthsAgo && lastUpdated < sixMonthsAgo.getTime()) {
+  if (targetDate > twoMonthsAgo && lastUpdated < twoMonthsAgo.getTime()) {
     console.warn(
-      "[baseline-browser-mapping] The data in this module is over six months old. To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
+      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date. To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
     );
     hasWarned = true;
   }
