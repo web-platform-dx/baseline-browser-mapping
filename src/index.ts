@@ -15,7 +15,11 @@ try {
 
 let hasWarned = false;
 
-const checkUpdate = (targetDate: Date) => {
+export function _resetHasWarned() {
+  hasWarned = false;
+}
+
+const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   if (
     hasWarned ||
     process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
@@ -27,9 +31,13 @@ const checkUpdate = (targetDate: Date) => {
   const twoMonthsAgo = new Date();
   twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
-  if (targetDate > twoMonthsAgo && lastUpdated < twoMonthsAgo.getTime()) {
+  const lastUpdatedToUse = lastUpdatedOverride ?? lastUpdated;
+
+  if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
     console.warn(
-      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date. To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`",
+      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
+      targetDate.toISOString().slice(0, 10) +
+      ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.",
     );
     hasWarned = true;
   }
@@ -414,6 +422,7 @@ type Options = {
    * an optimal user experience.  Defaults to `false`.
    */
   includeKaiOS?: boolean;
+  overrideLastUpdated?: number;
 };
 
 /**
@@ -436,6 +445,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     widelyAvailableOnDate: incomingOptions.widelyAvailableOnDate ?? undefined,
     targetYear: incomingOptions.targetYear ?? undefined,
     includeKaiOS: incomingOptions.includeKaiOS ?? false,
+    overrideLastUpdated: incomingOptions.overrideLastUpdated ?? undefined,
   };
 
   let targetDate: Date = new Date();
@@ -467,7 +477,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     options.listAllCompatibleVersions,
   );
 
-  checkUpdate(targetDate);
+  checkUpdate(targetDate, options.overrideLastUpdated);
 
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;

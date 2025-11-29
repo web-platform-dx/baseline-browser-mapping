@@ -1,7 +1,10 @@
 import {
   getCompatibleVersions,
   getAllVersions,
+  _resetHasWarned,
 } from "baseline-browser-mapping";
+import fs from "fs";
+import path from "path";
 
 describe("getCompatibleVersions default", () => {
   it("Returns 7 browsers by default", () => {
@@ -64,6 +67,54 @@ describe("getCompatibleVersions default", () => {
       engine: "Gecko",
       engine_version: "84",
     });
+  });
+
+  it("Warns when targeting newly available versions with old data", () => {
+    spyOn(console, "warn");
+    const thirtyMonthsFromNow = new Date();
+    thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    _resetHasWarned();
+    getCompatibleVersions({
+      widelyAvailableOnDate: thirtyMonthsFromNow.toISOString().slice(0, 10),
+      overrideLastUpdated: ninetyDaysAgo.getTime(),
+    });
+    expect(console.warn).toHaveBeenCalled();
+  });
+
+  it("Does not warn when BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA is set in .env", () => {
+    spyOn(console, "warn");
+    const thirtyMonthsFromNow = new Date();
+    thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    _resetHasWarned();
+
+    const envPath = path.join(process.cwd(), ".env");
+    fs.writeFileSync(envPath, "BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true");
+
+    if (typeof process.loadEnvFile === "function") {
+      process.loadEnvFile(envPath);
+    }
+
+    getCompatibleVersions({
+      widelyAvailableOnDate: thirtyMonthsFromNow.toISOString().slice(0, 10),
+      overrideLastUpdated: ninetyDaysAgo.getTime(),
+    });
+
+    if (typeof process.loadEnvFile === "function") {
+      expect(console.warn).not.toHaveBeenCalled();
+    } else {
+      expect(console.warn).toHaveBeenCalled();
+    }
+
+    if (fs.existsSync(envPath)) {
+      fs.unlinkSync(envPath);
+    }
+    delete process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA;
   });
 });
 

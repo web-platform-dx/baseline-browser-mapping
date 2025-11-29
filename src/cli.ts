@@ -15,6 +15,7 @@ const { values } = parseArgs({
     "include-downstream-browsers": { type: "boolean" },
     "list-all-compatible-versions": { type: "boolean" },
     "include-kaios": { type: "boolean" },
+    "override-last-updated": { type: "string" },
     help: { type: "boolean", short: "h" },
   },
   strict: true,
@@ -35,6 +36,7 @@ Options:
       --include-downstream-browsers   Whether to include browsers that use the same engines as a core Baseline browser.
       --include-kaios                 Whether to include KaiOS in downstream browsers.  Requires --include-downstream-browsers.
       --list-all-compatible-versions  Whether to include only the minimum compatible browser versions or all compatible versions.
+      --override-last-updated         Override the last updated date for the baseline data for debugging purposes.
   -h, --help                          Show help
 
 Examples:
@@ -56,5 +58,8 @@ console.log(
     includeDownstreamBrowsers: values["include-downstream-browsers"],
     listAllCompatibleVersions: values["list-all-compatible-versions"],
     includeKaiOS: values["include-kaios"],
+    overrideLastUpdated: values["override-last-updated"]
+      ? Number.parseInt(values["override-last-updated"])
+      : undefined,
   }),
 );
