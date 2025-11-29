@@ -24,7 +24,7 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "bin": {
-    "baseline-browser-mapping": "./dist/cli.js"
+    "baseline-browser-mapping": "dist/cli.js"
   },
   "scripts": {
     "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^.*: \\(.*\\): Permission denied$/\\1/p; t; s/^\\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
@@ -56,5 +56,8 @@
     "typescript-eslint": "^8.35.0",
     "web-features": "^3.9.3"
   },
-  "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
+  }
 }

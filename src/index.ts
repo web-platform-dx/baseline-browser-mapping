@@ -36,8 +36,8 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
     console.warn(
       "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
-      targetDate.toISOString().slice(0, 10) +
-      ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.",
+        targetDate.toISOString().slice(0, 10) +
+        ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.",
     );
     hasWarned = true;
   }
