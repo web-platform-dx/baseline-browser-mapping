@@ -423,6 +423,11 @@ type Options = {
    */
   includeKaiOS?: boolean;
   overrideLastUpdated?: number;
+  /**
+   * Pass a boolean to suppress the warning about stale data.
+   * Defaults to `false`.
+   */
+  suppressWarnings?: boolean;
 };
 
 /**
@@ -446,6 +451,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     targetYear: incomingOptions.targetYear ?? undefined,
     includeKaiOS: incomingOptions.includeKaiOS ?? false,
     overrideLastUpdated: incomingOptions.overrideLastUpdated ?? undefined,
+    suppressWarnings: incomingOptions.suppressWarnings ?? false,
   };
 
   let targetDate: Date = new Date();
@@ -477,7 +483,9 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     options.listAllCompatibleVersions,
   );
 
-  checkUpdate(targetDate, options.overrideLastUpdated);
+  if (!options.suppressWarnings) {
+    checkUpdate(targetDate, options.overrideLastUpdated);
+  }
 
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;
@@ -515,6 +523,11 @@ type AllVersionsOptions = {
    * consideration beyond simple feature compatibility to provide an optimal user experience.
    */
   includeKaiOS?: boolean;
+  /**
+   * Pass a boolean to suppress the warning about old data.
+   * Defaults to `false`.
+   */
+  suppressWarnings?: boolean;
 };
 
 /**
@@ -537,6 +550,7 @@ export function getAllVersions(
       incomingOptions.includeDownstreamBrowsers ?? false,
     useSupports: incomingOptions.useSupports ?? false,
     includeKaiOS: incomingOptions.includeKaiOS ?? false,
+    suppressWarnings: incomingOptions.suppressWarnings ?? false,
   };
 
   kaiOSWarning(options);
@@ -547,13 +561,18 @@ export function getAllVersions(
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
-    getCompatibleVersions({ targetYear: year }).forEach((version) => {
+    getCompatibleVersions({
+      targetYear: year,
+      suppressWarnings: options.suppressWarnings,
+    }).forEach((version) => {
       if (yearMinimumVersions[year])
         yearMinimumVersions[year][version.browser] = version;
     });
   });
 
-  const waMinimumVersions = getCompatibleVersions({});
+  const waMinimumVersions = getCompatibleVersions({
+    suppressWarnings: options.suppressWarnings,
+  });
   const waObject: versionsObject = {};
   waMinimumVersions.forEach((version: BrowserVersion) => {
     waObject[version.browser] = version;
@@ -563,6 +582,7 @@ export function getAllVersions(
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
   const naMinimumVersions = getCompatibleVersions({
     widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10),
+    suppressWarnings: options.suppressWarnings,
   });
 
   const naObject: versionsObject = {};
@@ -573,6 +593,7 @@ export function getAllVersions(
   const allVersions = getCompatibleVersions({
     targetYear: 2002,
     listAllCompatibleVersions: true,
+    suppressWarnings: options.suppressWarnings,
   });
 
   const outputArray: AllBrowsersBrowserVersion[] = [];

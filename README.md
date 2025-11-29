@@ -31,9 +31,9 @@ If you are only using this module to generate minimum browser versions for Basel
 
 However, if you are targeting Newly available, using the [`getAllVersions()`](#get-data-for-all-browser-versions) function or heavily relying on the data for downstream browsers, you should update this module more frequently. If your installed version of `baseline-browser-mapping` is 2 or more months older than the feature compatibility cut off date you are targeting, you will receive a console warning advising you to update to the latest version when you call `getCompatibleVersions()` or `getAllVersions()`.
 
-If you want to suppress these warnings you can use the `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` environment variable when running your build process. This module also respects the `BROWSERSLIST_IGNORE_OLD_DATA=true` environment variable. Environment variables can also be provided in a .env file from Node 20 onwards.
+If you want to suppress these warnings you can use the `suppressWarnings: true` option in the configuration object passed to `getCompatibleVersions()` or `getAllVersions()`. Alternatively, you can use the `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` environment variable when running your build process. This module also respects the `BROWSERSLIST_IGNORE_OLD_DATA=true` environment variable. Environment variables can also be provided in a .env file from Node 20 onwards.
 
-If you want to ensure [reproducible builds](https://www.wikiwand.com/en/articles/Reproducible_builds), we strongly recommend using the `widelyAvailableOnDate` option to fix the Widely available date on a per build basis to ensure dependent tools provide the same output and you do not produce data staleness warnings. If you are using [`browserslist`] to target Baseline Widely available, consider automatically updating your `browserslist` configuration to `baseline widely available on {YYYY-MM-DD}` as part of your build process to ensure the same list of minimum browsers is reproduced for historical builds.
+If you want to ensure [reproducible builds](https://www.wikiwand.com/en/articles/Reproducible_builds), we strongly recommend using the `widelyAvailableOnDate` option to fix the Widely available date on a per build basis to ensure dependent tools provide the same output and you do not produce data staleness warnings. If you are using [`browserslist`](https://github.com/browserslist/browserslist) to target Baseline Widely available, consider automatically updating your `browserslist` configuration to `baseline widely available on {YYYY-MM-DD}` as part of your build process to ensure the same list of minimum browsers is reproduced for historical builds.
 
 ## Importing `baseline-browser-mapping`
 
@@ -103,7 +103,8 @@ Executed on 7th March 2025, the above code returns the following browser version
   targetYear: undefined,
   widelyAvailableOnDate: undefined,
   includeDownstreamBrowsers: false,
-  listAllCompatibleVersions: false
+  listAllCompatibleVersions: false,
+  suppressWarnings: false
 }
 ```
 
@@ -193,6 +194,16 @@ getCompatibleVersions({
 });
 ```
 
+#### `suppressWarnings`
+
+Setting `suppressWarnings` to `true` will suppress the console warning about old data:
+
+```javascript
+getCompatibleVersions({
+  suppressWarnings: true,
+});
+```
+
 ## Get data for all browser versions
 
 You may want to obtain data on all the browser versions available in this module for use in an analytics solution or dashboard. To get details of each browser version's level of Baseline support, call the `getAllVersions()` function:
@@ -245,7 +256,8 @@ Browser versions that do not support Widely or Newly available will not include 
 ```javascript
 {
   includeDownstreamBrowsers: false,
-  outputFormat: "array"
+  outputFormat: "array",
+  suppressWarnings: false
 }
 ```
 
@@ -285,6 +297,16 @@ As with `getCompatibleVersions()` you can include KaiOS in your output. The same
 getAllVersions({
   includeDownstreamBrowsers: true,
   includeKaiOS: true,
+});
+```
+
+#### `suppressWarnings` (in `getAllVersions()` output)
+
+As with `getCompatibleVersions()`, you can set `suppressWarnings` to `true` to suppress the console warning about old data:
+
+```javascript
+getAllVersions({
+  suppressWarnings: true,
 });
 ```
 

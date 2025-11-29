@@ -116,6 +116,22 @@ describe("getCompatibleVersions default", () => {
     }
     delete process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA;
   });
+
+  it("Does not warn when suppressWarnings is true", () => {
+    spyOn(console, "warn");
+    const thirtyMonthsFromNow = new Date();
+    thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    _resetHasWarned();
+    getCompatibleVersions({
+      widelyAvailableOnDate: thirtyMonthsFromNow.toISOString().slice(0, 10),
+      overrideLastUpdated: ninetyDaysAgo.getTime(),
+      suppressWarnings: true,
+    });
+    expect(console.warn).not.toHaveBeenCalled();
+  });
 });
 
 describe("getAllVersions default", () => {
