@@ -1,4 +1,50 @@
-import { features, bcdBrowsers, otherBrowsers } from "./scripts/expose-data.js";
+import {
+  features,
+  bcdBrowsers,
+  otherBrowsers,
+  lastUpdated,
+} from "./scripts/expose-data.js";
+
+try {
+  if (typeof process.loadEnvFile === "function") {
+    process.loadEnvFile();
+  }
+} catch (e) {
+  // ignore
+}
+
+let hasWarned = false;
+
+export function _resetHasWarned() {
+  hasWarned = false;
+}
+
+const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
+  if (
+    hasWarned ||
+    process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
+    process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA
+  ) {
+    return;
+  }
+
+  const twoMonthsAgo = new Date();
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+  const lastUpdatedToUse = lastUpdatedOverride ?? lastUpdated;
+
+  if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
+    console.warn(
+      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
+        targetDate.toISOString().slice(0, 10) +
+      ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.\n" +
+      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true`.\n" +
+      "Some modules including `next.js` pre-compile data from this module via `browserslist` or other packages.\n" +
+      "Please contact the maintainers of those modules if you are receiving these warnings and can't suppress them.\n"
+    );
+    hasWarned = true;
+  }
+};
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -379,6 +425,12 @@ type Options = {
    * an optimal user experience.  Defaults to `false`.
    */
   includeKaiOS?: boolean;
+  overrideLastUpdated?: number;
+  /**
+   * Pass a boolean to suppress the warning about stale data.
+   * Defaults to `false`.
+   */
+  suppressWarnings?: boolean;
 };
 
 /**
@@ -401,6 +453,8 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     widelyAvailableOnDate: incomingOptions.widelyAvailableOnDate ?? undefined,
     targetYear: incomingOptions.targetYear ?? undefined,
     includeKaiOS: incomingOptions.includeKaiOS ?? false,
+    overrideLastUpdated: incomingOptions.overrideLastUpdated ?? undefined,
+    suppressWarnings: incomingOptions.suppressWarnings ?? false,
   };
 
   let targetDate: Date = new Date();
@@ -431,6 +485,10 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     targetDate,
     options.listAllCompatibleVersions,
   );
+
+  if (!options.suppressWarnings) {
+    checkUpdate(targetDate, options.overrideLastUpdated);
+  }
 
   if (options.includeDownstreamBrowsers === false) {
     return coreBrowserArray;
@@ -468,6 +526,11 @@ type AllVersionsOptions = {
    * consideration beyond simple feature compatibility to provide an optimal user experience.
    */
   includeKaiOS?: boolean;
+  /**
+   * Pass a boolean to suppress the warning about old data.
+   * Defaults to `false`.
+   */
+  suppressWarnings?: boolean;
 };
 
 /**
@@ -490,6 +553,7 @@ export function getAllVersions(
       incomingOptions.includeDownstreamBrowsers ?? false,
     useSupports: incomingOptions.useSupports ?? false,
     includeKaiOS: incomingOptions.includeKaiOS ?? false,
+    suppressWarnings: incomingOptions.suppressWarnings ?? false,
   };
 
   kaiOSWarning(options);
@@ -500,13 +564,18 @@ export function getAllVersions(
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
-    getCompatibleVersions({ targetYear: year }).forEach((version) => {
+    getCompatibleVersions({
+      targetYear: year,
+      suppressWarnings: options.suppressWarnings,
+    }).forEach((version) => {
       if (yearMinimumVersions[year])
         yearMinimumVersions[year][version.browser] = version;
     });
   });
 
-  const waMinimumVersions = getCompatibleVersions({});
+  const waMinimumVersions = getCompatibleVersions({
+    suppressWarnings: options.suppressWarnings,
+  });
   const waObject: versionsObject = {};
   waMinimumVersions.forEach((version: BrowserVersion) => {
     waObject[version.browser] = version;
@@ -516,6 +585,7 @@ export function getAllVersions(
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
   const naMinimumVersions = getCompatibleVersions({
     widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10),
+    suppressWarnings: options.suppressWarnings,
   });
 
   const naObject: versionsObject = {};
@@ -526,6 +596,7 @@ export function getAllVersions(
   const allVersions = getCompatibleVersions({
     targetYear: 2002,
     listAllCompatibleVersions: true,
+    suppressWarnings: options.suppressWarnings,
   });
 
   const outputArray: AllBrowsersBrowserVersion[] = [];

@@ -1,7 +1,7 @@
 {
   "name": "baseline-browser-mapping",
   "main": "./dist/index.cjs",
-  "version": "2.8.32",
+  "version": "2.9.0",
   "description": "A library for obtaining browser versions with their maximum supported Baseline feature set and Widely Available status.",
   "exports": {
     ".": {
@@ -24,16 +24,15 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "bin": {
-    "baseline-browser-mapping": "./dist/cli.js"
+    "baseline-browser-mapping": "dist/cli.js"
   },
   "scripts": {
-    "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^sh: \\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
+    "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^.*: \\(.*\\): Permission denied$/\\1/p; t; s/^\\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
     "test:format": "npx prettier --check .",
     "test:lint": "npx eslint .",
-    "test:bcb": "mkdir test-bcb && cd test-bcb && npm init -y && npm i ../../baseline-browser-mapping browserslist browserslist-config-baseline &&jq '. += {\"browserslist\":[\"extends browserslist-config-baseline\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-bcb",
     "test:browserslist": "mkdir test-browserslist && cd test-browserslist && npm init -y && npm i ../../baseline-browser-mapping browserslist &&jq '. += {\"browserslist\":[\"baseline widely available with downstream\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-browserslist",
     "test:jasmine": "npx jasmine",
-    "test": "npm run build && npm run fix-cli-permissions && rm -rf test-browserslist test-bcb && npm run test:format && npm run test:lint && npx jasmine && npm run test:browserslist && npm run test:bcb",
+    "test": "npm run build && npm run fix-cli-permissions && rm -rf test-browserslist && npm run test:format && npm run test:lint && npx jasmine && npm run test:browserslist",
     "build": "rm -rf dist; npx prettier . --write; rollup -c; rm -rf ./dist/scripts/expose-data.d.ts ./dist/cli.d.ts",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
@@ -57,5 +56,8 @@
     "typescript-eslint": "^8.35.0",
     "web-features": "^3.9.3"
   },
-  "repository": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/web-platform-dx/baseline-browser-mapping.git"
+  }
 }

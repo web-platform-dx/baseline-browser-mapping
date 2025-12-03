@@ -34,4 +34,47 @@ describe("CLI", () => {
       },
     );
   });
+
+  it("should warn when targeting newly available versions with old data", (done) => {
+    const thirtyMonthsFromNow = new Date();
+    thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const dateStr = thirtyMonthsFromNow.toISOString().slice(0, 10);
+    const timestamp = ninetyDaysAgo.getTime();
+
+    exec(
+      `npx baseline-browser-mapping --widely-available-on-date ${dateStr} --override-last-updated ${timestamp}`,
+      (error, stdout, stderr) => {
+        expect(error).toBe(null);
+        // console.warn goes to stderr in Node.js when run via exec
+        expect(stderr).toContain(
+          "[baseline-browser-mapping] The data in this module is over two months old",
+        );
+        done();
+      },
+    );
+  });
+
+  it("should not warn when BROWSERSLIST_IGNORE_OLD_DATA is set", (done) => {
+    const thirtyMonthsFromNow = new Date();
+    thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const dateStr = thirtyMonthsFromNow.toISOString().slice(0, 10);
+    const timestamp = ninetyDaysAgo.getTime();
+
+    exec(
+      `BROWSERSLIST_IGNORE_OLD_DATA=1 npx baseline-browser-mapping --widely-available-on-date ${dateStr} --override-last-updated ${timestamp}`,
+      (error, stdout, stderr) => {
+        expect(error).toBe(null);
+        expect(stderr).not.toContain(
+          "[baseline-browser-mapping] The data in this module is over two months old",
+        );
+        done();
+      },
+    );
+  });
 });

@@ -7,3 +7,4 @@ baseline-browser-mapping-*.tgz
 .vscode/
 .idea/
 .DS_Store
+.env
