@@ -37,7 +37,10 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
     console.warn(
       "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
         targetDate.toISOString().slice(0, 10) +
-        ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.",
+      ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.\n" +
+      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true`.\n" +
+      "Some modules including `next.js` pre-compile data from this module via `browserslist` or other packages.\n" +
+      "Please contact the maintainers of those modules if you are receiving these warnings and can't suppress them.\n"
     );
     hasWarned = true;
   }
