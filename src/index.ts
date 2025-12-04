@@ -6,7 +6,10 @@ import {
 } from "./scripts/expose-data.js";
 
 try {
-  if (typeof process.loadEnvFile === "function") {
+  if (
+    typeof process !== "undefined" &&
+    typeof process.loadEnvFile === "function"
+  ) {
     process.loadEnvFile();
   }
 } catch (e) {
@@ -22,8 +25,10 @@ export function _resetHasWarned() {
 const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   if (
     hasWarned ||
-    process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
-    process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA
+    (typeof process !== "undefined" &&
+      process.env &&
+      (process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
+        process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA))
   ) {
     return;
   }
@@ -37,10 +42,10 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
     console.warn(
       "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
         targetDate.toISOString().slice(0, 10) +
-      ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.\n" +
-      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true`.\n" +
-      "Some modules including `next.js` pre-compile data from this module via `browserslist` or other packages.\n" +
-      "Please contact the maintainers of those modules if you are receiving these warnings and can't suppress them.\n"
+        ". To ensure accurate Baseline data, please update to the latest version of this module using your package manager of choice.\n" +
+        "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true`.\n" +
+        "Some modules including `next.js` pre-compile data from this module via `browserslist` or other packages.\n" +
+        "Please contact the maintainers of those modules if you are receiving these warnings and can't suppress them.\n",
     );
     hasWarned = true;
   }
@@ -144,7 +149,13 @@ const kaiOSWarning = (options: Options | AllVersionsOptions) => {
         "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
       ),
     );
-    process.exit(1);
+    if (typeof process !== "undefined" && process.exit) {
+      process.exit(1);
+    } else {
+      throw new Error(
+        "KaiOS configuration error: process.exit is not available",
+      );
+    }
   }
 };
 
@@ -469,7 +480,13 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
         "You cannot use targetYear and widelyAvailableOnDate at the same time.  Please remove one of these options and try again.",
       ),
     );
-    process.exit(1);
+    if (typeof process !== "undefined" && process.exit) {
+      process.exit(1);
+    } else {
+      throw new Error(
+        "Configuration error: targetYear and widelyAvailableOnDate cannot be used together",
+      );
+    }
   } else if (options.widelyAvailableOnDate) {
     targetDate = new Date(options.widelyAvailableOnDate);
   } else if (options.targetYear) {
