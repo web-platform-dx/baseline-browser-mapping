@@ -5,17 +5,6 @@ import {
   lastUpdated,
 } from "./scripts/expose-data.js";
 
-try {
-  if (
-    typeof process !== "undefined" &&
-    typeof process.loadEnvFile === "function"
-  ) {
-    process.loadEnvFile();
-  }
-} catch (e) {
-  // ignore
-}
-
 let hasWarned = false;
 
 export function _resetHasWarned() {

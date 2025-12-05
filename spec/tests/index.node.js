@@ -84,7 +84,7 @@ describe("getCompatibleVersions default", () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
-  it("Does not warn when BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA is set in .env", () => {
+  it("Does not warn when BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA is set in .env and process.loadEnvFile is called", () => {
     spyOn(console, "warn");
     const thirtyMonthsFromNow = new Date();
     thirtyMonthsFromNow.setMonth(thirtyMonthsFromNow.getMonth() + 30);

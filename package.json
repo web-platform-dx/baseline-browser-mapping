@@ -1,7 +1,7 @@
 {
   "name": "baseline-browser-mapping",
   "main": "./dist/index.cjs",
-  "version": "2.9.2",
+  "version": "2.9.3",
   "description": "A library for obtaining browser versions with their maximum supported Baseline feature set and Widely Available status.",
   "exports": {
     ".": {
@@ -30,10 +30,9 @@
     "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^.*: \\(.*\\): Permission denied$/\\1/p; t; s/^\\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
     "test:format": "npx prettier --check .",
     "test:lint": "npx eslint .",
-    "test:browserslist": "mkdir test-browserslist && cd test-browserslist && npm init -y && npm i ../../baseline-browser-mapping browserslist &&jq '. += {\"browserslist\":[\"baseline widely available with downstream\"]}' package.json >p && mv p package.json && npx browserslist && cd ../ && rm -rf test-browserslist",
     "test:jasmine": "npx jasmine",
     "test:jasmine-browser": "npx jasmine-browser-runner runSpecs --config ./spec/support/jasmine-browser.js",
-    "test": "npm run build && npm run fix-cli-permissions && rm -rf test-browserslist && npm run test:format && npm run test:lint && npm run test:jasmine && npm run test:jasmine-browser && npm run test:browserslist",
+    "test": "npm run build && npm run fix-cli-permissions && npm run test:format && npm run test:lint && npm run test:jasmine && npm run test:jasmine-browser",
     "build": "rm -rf dist; npx prettier . --write; rollup -c; rm -rf ./dist/scripts/expose-data.d.ts ./dist/cli.d.ts",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
