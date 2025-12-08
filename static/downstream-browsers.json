@@ -688,6 +688,12 @@
           "engine_version": "140",
           "status": "unknown",
           "release_date": "2025-10-09"
+        },
+        "25.12": {
+          "engine": "Blink",
+          "engine_version": "142",
+          "status": "unknown",
+          "release_date": "2025-12-07"
         }
       }
     },
@@ -3815,5 +3821,5 @@
       }
     }
   },
-  "lastUpdated": "2025-11-28T14:10:17.228Z"
+  "lastUpdated": "2025-12-08T14:11:15.860Z"
 }
