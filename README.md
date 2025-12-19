@@ -19,7 +19,7 @@ To install the package, run:
 
 ```javascript
 "scripts": [
-  "refresh-baseline-browser-mapping": "npm i --save-dev baseline-browser-mapping@latest"
+  "refresh-baseline-browser-mapping": "npx update-browserslist-db@latest"
 ]
 ```
 
