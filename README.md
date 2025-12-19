@@ -15,7 +15,7 @@ To install the package, run:
 
 `npm install --save-dev baseline-browser-mapping`
 
-`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for core browser version selection, but the data is pre-packaged and minified. This package checks for updates to those modules and the supported [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `baseline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible:
+`baseline-browser-mapping` depends on `web-features` and `@mdn/browser-compat-data` for core browser version selection, but the data is pre-packaged and minified. This package checks for updates to those modules and the supported [downstream browsers](#downstream-browsers) on a daily basis and is updated frequently. Consider adding a script to your `package.json` to update `baseline-browser-mapping` and using it as part of your build process to ensure your data is as up to date as possible.  If you're using `baseline-browser-mapping` via `browserslist`, you can use the `update-browserslist-db` script to update all the data packages `browserslist` depends on:
 
 ```javascript
 "scripts": [
