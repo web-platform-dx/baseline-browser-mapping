@@ -1,7 +1,7 @@
 {
   "name": "baseline-browser-mapping",
   "main": "./dist/index.cjs",
-  "version": "2.9.18",
+  "version": "2.9.19",
   "description": "A library for obtaining browser versions with their maximum supported Baseline feature set and Widely Available status.",
   "exports": {
     ".": {
