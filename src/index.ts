@@ -30,10 +30,9 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
     console.warn(
       "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
-        targetDate.toISOString().slice(0, 10) +
-        ". To ensure accurate Baseline data, please update to the latest version of this module using the package manager of your choice.  " +
-        "If you're using browserslist, you can run: npx update-browserslist-db@latest.\n" +
-        "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true`."
+      targetDate.toISOString().slice(0, 10) +
+      ". To ensure accurate Baseline data, please update to the latest version of this module using the package manager of your choice." +
+      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` or by passing `suppressWarnings: true` when you call `getCompatibleVersions()` or `getAllVersions()`.",
     );
     hasWarned = true;
   }
@@ -326,8 +325,8 @@ const getDownstreamBrowsers = (
   const getMinimumVersion = (browserName: string): string | undefined => {
     return inputArray && inputArray.length > 0
       ? inputArray
-          .filter((browser: BrowserVersion) => browser.browser === browserName)
-          .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
+        .filter((browser: BrowserVersion) => browser.browser === browserName)
+        .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
       : undefined;
   };
 
@@ -436,10 +435,11 @@ type Options = {
  * Returns browser versions compatible with specified Baseline targets.
  * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
  * Takes an optional configuration `Object` with four optional properties:
- * - `listAllCompatibleVersions`: `false` (default) or `false`
- * - `includeDownstreamBrowsers`: `false` (default) or `false`
+ * - `listAllCompatibleVersions`: `false` (default) or `true`
+ * - `includeDownstreamBrowsers`: `false` (default) or `true`
  * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
  * - `targetYear`: year in format `YYYY`
+ * - `supressWarnings`: `false` (default) or `true`
  */
 export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
   let incomingOptions = userOptions ?? {};
@@ -541,9 +541,10 @@ type AllVersionsOptions = {
 /**
  * Returns all browser versions known to this module with their level of Baseline support as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
  * Takes an optional configuration `Object` with three optional properties:
- * - `includeDownstreamBrowsers`: `true` (default) or `false`
+ * - `includeDownstreamBrowsers`: `false` (default) or `true`
  * - `outputFormat`: `"array"` (default), `"object"` or `"csv"`
  * - `useSupports`: `false` (default) or `true`, replaces `wa_compatible` property with optional `supports` property which returns `widely` or `newly` available when present.
+ * - `supressWarnings`: `false` (default) or `true`
  */
 export function getAllVersions(
   userOptions?: AllVersionsOptions,
