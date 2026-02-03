@@ -12,7 +12,7 @@ export default [
       typescript({
         tsconfig: "./tsconfig.json",
         outDir: "dist",
-        target: "es2017",
+        target: "es2015",
       }),
       terser(),
     ],
@@ -27,7 +27,7 @@ export default [
       typescript({
         tsconfig: "./tsconfig.json",
         outDir: "dist",
-        target: "es2017",
+        target: "es2015",
       }),
       terser(),
     ],
