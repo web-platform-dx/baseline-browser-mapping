@@ -26,6 +26,9 @@
   "bin": {
     "baseline-browser-mapping": "dist/cli.js"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "scripts": {
     "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^.*: \\(.*\\): Permission denied$/\\1/p; t; s/^\\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
     "test:format": "npx prettier --check .",
