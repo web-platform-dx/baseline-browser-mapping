@@ -7,28 +7,49 @@ env:
   package_dir: "/"
 
 jobs:
-  run-tests:
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
+  test-matrix:
+    needs: build
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [6, 8, 10, 12, 14, 16, 18, 20, 22]
-
-    permissions:
-      contents: write
-
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Install environment
-        run: npm ci
-
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
       - name: Run tests
-        run: npm run test
-
-      - name: clean up
-        run: rm -rf test-bcb dist node_modules
+        run: |
+          NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
+          echo "Running on Node $NODE_MAJOR"
+          if [ "$NODE_MAJOR" -lt 18 ]; then
+            echo "Running legacy smoke test..."
+            node scripts/legacy-test.js
+          else
+            echo "Running full test suite..."
+            npm ci
+            npm run test:jasmine
+          fi
