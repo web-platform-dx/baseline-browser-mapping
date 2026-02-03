@@ -76,8 +76,9 @@ const expandBrowserVersions = (bcdBrowsersFlat: {
       releases: { [key: string]: BrowserVersionKeyed };
     };
   } = {};
-  Object.entries(bcdBrowsersFlat).forEach(([browser, data]) => {
-    if (data.releases) {
+  Object.keys(bcdBrowsersFlat).forEach((browser) => {
+    const data = bcdBrowsersFlat[browser];
+    if (data && data.releases) {
       if (!browsersOutObject[browser]) {
         browsersOutObject[browser] = { releases: {} };
       }
