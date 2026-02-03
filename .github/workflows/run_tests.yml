@@ -47,7 +47,7 @@ jobs:
           echo "Running on Node $NODE_MAJOR"
           if [ "$NODE_MAJOR" -lt 18 ]; then
             echo "Running legacy smoke test..."
-            node scripts/legacy-test.js
+            node scripts/legacy-test.cjs
           else
             echo "Running full test suite..."
             npm ci
