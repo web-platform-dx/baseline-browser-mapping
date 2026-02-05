@@ -30,9 +30,9 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
     console.warn(
       "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
-      targetDate.toISOString().slice(0, 10) +
-      ". To ensure accurate Baseline data, please update to the latest version of this module using the package manager of your choice." +
-      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` or by passing `suppressWarnings: true` when you call `getCompatibleVersions()` or `getAllVersions()`.",
+        targetDate.toISOString().slice(0, 10) +
+        ". To ensure accurate Baseline data, please update to the latest version of this module using the package manager of your choice." +
+        "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` or by passing `suppressWarnings: true` when you call `getCompatibleVersions()` or `getAllVersions()`.",
     );
     hasWarned = true;
   }
@@ -325,8 +325,8 @@ const getDownstreamBrowsers = (
   const getMinimumVersion = (browserName: string): string | undefined => {
     return inputArray && inputArray.length > 0
       ? inputArray
-        .filter((browser: BrowserVersion) => browser.browser === browserName)
-        .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
+          .filter((browser: BrowserVersion) => browser.browser === browserName)
+          .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
       : undefined;
   };
 
