@@ -88,12 +88,11 @@ type Feature = {
   support: object;
 };
 
-const coreBrowserData: [string, Browser][] = Object.entries(
+const coreBrowserData: [string, Browser][] = Object.keys(
   bcdBrowsers as BrowserData,
-).filter(([browserName]) => bcdCoreBrowserNames.includes(browserName)) as [
-  string,
-  Browser,
-][];
+)
+  .map((key) => [key, (bcdBrowsers as BrowserData)[key]] as [string, Browser])
+  .filter(([browserName]) => bcdCoreBrowserNames.includes(browserName));
 
 type versionsObject = {
   [browser: string]: BrowserVersion;
@@ -110,10 +109,13 @@ const bcdDownstreamBrowserNames: string[] = [
   "opera",
 ];
 const downstreamBrowserData: [string, Browser][] = [
-  ...(Object.entries(bcdBrowsers as BrowserData).filter(([browserName]) =>
-    bcdDownstreamBrowserNames.includes(browserName),
-  ) as [string, Browser][]),
-  ...(Object.entries(otherBrowsers as BrowserData) as [string, Browser][]),
+  ...Object.keys(bcdBrowsers as BrowserData)
+    .map((key) => [key, (bcdBrowsers as BrowserData)[key]] as [string, Browser])
+    .filter(([browserName]) => bcdDownstreamBrowserNames.includes(browserName)),
+  ...(Object.keys(otherBrowsers as BrowserData).map((key) => [
+    key,
+    (otherBrowsers as BrowserData)[key],
+  ]) as [string, Browser][]),
 ];
 
 const acceptableStatuses: string[] = [
@@ -203,7 +205,7 @@ const getMinimumVersionsFromFeatures = (
 ): BrowserVersion[] => {
   let minimumVersions: { [key: string]: BrowserVersion } = {};
 
-  Object.entries(coreBrowserData).forEach(([, browserData]) => {
+  coreBrowserData.forEach((browserData) => {
     minimumVersions[browserData[0]] = {
       browser: browserData[0],
       version: "0",
@@ -212,9 +214,10 @@ const getMinimumVersionsFromFeatures = (
   });
 
   features.forEach((feature) => {
-    Object.entries(feature.support).forEach((browser) => {
-      const browserName = browser[0];
-      const version = stripLTEPrefix(browser[1]);
+    Object.keys(feature.support).forEach((browserName) => {
+      // @ts-ignore
+      const versionStr = feature.support[browserName];
+      const version = stripLTEPrefix(versionStr);
       if (
         minimumVersions[browserName] &&
         compareVersions(
@@ -231,7 +234,9 @@ const getMinimumVersionsFromFeatures = (
     });
   });
 
-  return Object.values(minimumVersions);
+  return Object.keys(minimumVersions).map(
+    (key) => minimumVersions[key],
+  ) as BrowserVersion[];
 };
 
 const getSubsequentVersions = (
@@ -244,7 +249,19 @@ const getSubsequentVersions = (
       (bcdBrowser) => bcdBrowser[0] === minimumVersion.browser,
     );
     if (bcdBrowser) {
-      let sortedVersions = Object.entries(bcdBrowser[1].releases)
+      let sortedVersions = Object.keys(bcdBrowser[1].releases)
+        .map(
+          (key) =>
+            [key, bcdBrowser[1].releases[key]] as [
+              string,
+              {
+                status: string;
+                release_date?: string;
+                engine?: string;
+                engine_version?: string;
+              },
+            ],
+        )
         .filter(([, versionData]) => {
           return acceptableStatuses.includes(versionData.status);
         })
@@ -351,8 +368,21 @@ const getDownstreamBrowsers = (
     .forEach(([browserName, browserData]) => {
       if (!browserData.releases) return;
       // Only include versions with Blink or Gecko engine and engine_version >= minimum core version
-      let sortedAndFilteredVersions = Object.entries(browserData.releases)
+      let sortedAndFilteredVersions = Object.keys(browserData.releases)
+        .map(
+          (key) =>
+            [key, browserData.releases[key]] as [
+              string,
+              {
+                status: string;
+                release_date?: string;
+                engine?: string;
+                engine_version?: string;
+              },
+            ],
+        )
         .filter(([, versionData]) => {
+          // @ts-ignore
           const { engine, engine_version } = versionData;
           if (!engine || !engine_version) return false;
 
@@ -364,7 +394,10 @@ const getDownstreamBrowsers = (
           }
           return false;
         })
-        .sort((a, b) => compareVersions(a[0], b[0]));
+        .sort((a, b) => {
+          // @ts-ignore
+          return compareVersions(a[0], b[0]);
+        });
 
       for (let i = 0; i < sortedAndFilteredVersions.length; i++) {
         const versionEntry = sortedAndFilteredVersions[i];
