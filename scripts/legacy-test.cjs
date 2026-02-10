@@ -1,4 +1,3 @@
-/* eslint-disable */
 var path = require("path");
 
 try {
