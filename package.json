@@ -24,7 +24,7 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "bin": {
-    "baseline-browser-mapping": "dist/cli.js"
+    "baseline-browser-mapping": "dist/cli.cjs"
   },
   "engines": {
     "node": ">=6.0.0"
@@ -33,7 +33,7 @@
     "fix-cli-permissions": "output=$(npx baseline-browser-mapping 2>&1); path=$(printf '%s\n' \"$output\" | sed -n 's/^.*: \\(.*\\): Permission denied$/\\1/p; t; s/^\\(.*\\): Permission denied$/\\1/p'); if [ -n \"$path\" ]; then echo \"Permission denied for: $path\"; echo \"Removing $path ...\"; rm -rf \"$path\"; else echo \"$output\"; fi",
     "test:format": "npx prettier --check .",
     "test:lint": "npx eslint .",
-    "test:legacy-test": "node spec/legacy-tests/legacy-test.cjs",
+    "test:legacy-test": "node spec/legacy-tests/legacy-test.cjs; node dist/cli.cjs",
     "test:jasmine": "npx jasmine",
     "test:jasmine-browser": "npx jasmine-browser-runner runSpecs --config ./spec/support/jasmine-browser.js",
     "test": "npm run build && npm run fix-cli-permissions && npm run test:format && npm run test:lint && npm run test:jasmine && npm run test:jasmine-browser",

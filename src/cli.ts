@@ -1,26 +1,45 @@
 #!/usr/bin/env node
 
-import { parseArgs } from "node:util";
-import { exit } from "node:process";
-
-import { getCompatibleVersions } from "./index.js";
+const { getCompatibleVersions } = require("./index.cjs");
 
 const args = process.argv.slice(2);
+const values: Record<string, any> = {};
 
-const { values } = parseArgs({
-  args,
-  options: {
-    "target-year": { type: "string" },
-    "widely-available-on-date": { type: "string" },
-    "include-downstream-browsers": { type: "boolean" },
-    "list-all-compatible-versions": { type: "boolean" },
-    "include-kaios": { type: "boolean" },
-    "suppress-warnings": { type: "boolean" },
-    "override-last-updated": { type: "string" },
-    help: { type: "boolean", short: "h" },
-  },
-  strict: true,
-});
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (!arg) continue;
+
+  if (arg === "-h" || arg === "--help") {
+    values.help = true;
+  } else if (arg === "--include-downstream-browsers") {
+    values["include-downstream-browsers"] = true;
+  } else if (arg === "--list-all-compatible-versions") {
+    values["list-all-compatible-versions"] = true;
+  } else if (arg === "--include-kaios") {
+    values["include-kaios"] = true;
+  } else if (arg === "--suppress-warnings") {
+    values["suppress-warnings"] = true;
+  } else if (arg.startsWith("--target-year=")) {
+    values["target-year"] = arg.substring("--target-year=".length);
+  } else if (arg === "--target-year") {
+    values["target-year"] = args[++i];
+  } else if (arg.startsWith("--widely-available-on-date=")) {
+    values["widely-available-on-date"] = arg.substring(
+      "--widely-available-on-date=".length,
+    );
+  } else if (arg === "--widely-available-on-date") {
+    values["widely-available-on-date"] = args[++i];
+  } else if (arg.startsWith("--override-last-updated=")) {
+    values["override-last-updated"] = arg.substring(
+      "--override-last-updated=".length,
+    );
+  } else if (arg === "--override-last-updated") {
+    values["override-last-updated"] = args[++i];
+  } else {
+    console.error(`Unknown argument: ${arg}`);
+    process.exit(1);
+  }
+}
 
 if (values.help) {
   console.log(
@@ -48,7 +67,7 @@ Examples:
   npx baseline-browser-mapping --list-all-compatible-versions
 `.trim(),
   );
-  exit(0);
+  process.exit(0);
 }
 
 console.log(
