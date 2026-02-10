@@ -1,7 +1,7 @@
 var path = require("path");
 
 try {
-  var distPath = path.resolve(__dirname, "../dist/index.cjs");
+  var distPath = path.resolve(__dirname, "../../dist/index.cjs");
   console.log("Loading module from:", distPath);
 
   var lib = require(distPath);
