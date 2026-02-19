@@ -6,13 +6,17 @@ on:
     tags:
       - v[2].[0-9]+.[0-9]+
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
-  publish:
+
+  build:
     runs-on: ubuntu-latest
 
-    permissions:
-      actions: write
-      contents: read
+    outputs:
+      status: ${{ steps.build.outcome }}
 
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +25,7 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+      
 
       - name: Install environment
         run: npm ci
@@ -29,14 +34,27 @@ jobs:
         id: build-for-release
         run: npm run build
 
-      - name: Run test workflow
-        id: run-tests
-        if: steps.build-for-release.outcome == 'success'
-        run: gh workflow run run_tests.yml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run-tests:
+    runs-on: ubuntu-latest
+
+    outputs:
+    status: ${{ steps.test.outcome }}
+
+    needs: build
+    uses: ./.github/workflows/run_tests.yml
+
+  publish:
+    needs: run-tests
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Publish new version to NPM
         if: steps.run-tests.outcome == 'success'
         id: publish-to-npm
-        run: npm publish
+        run: npm publish --provenance
