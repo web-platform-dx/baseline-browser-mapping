@@ -32,6 +32,7 @@ jobs:
       - name: Install & Build (if artifact missing)
         run: |
           if [ ! -d "./dist" ]; then
+            echo "Artifact not found, building..."
             npm ci && npm run build
           fi
       - name: Run tests
