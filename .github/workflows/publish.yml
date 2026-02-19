@@ -27,12 +27,17 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       
 
-      - name: Install environment
-        run: npm ci
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build
 
-      - name: Build for release
-        id: build-for-release
-        run: npm run build
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: ./dist
+          retention-days: 1
 
   run-tests:
     needs: build
@@ -50,6 +55,5 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish new version to NPM
-        if: steps.run-tests.outcome == 'success'
         id: publish-to-npm
         run: npm publish --provenance
