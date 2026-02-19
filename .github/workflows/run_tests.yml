@@ -52,6 +52,7 @@ jobs:
     strategy:
       matrix:
         node-version: [6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+    name: Node.js v${{ matrix.node-version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
