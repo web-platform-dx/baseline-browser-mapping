@@ -11,7 +11,43 @@ env:
 
 jobs:
 
+  prepare-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # 1. Check if the caller already provided a build
+      - name: Try to download existing build artifact
+        id: download-check
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./dist
+        continue-on-error: true
+
+      # 2. If the download failed, build it now using Node 24
+      - name: Setup Node 24 (for building)
+        if: steps.download-check.outcome != 'success'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install & Build (only if needed)
+        if: steps.download-check.outcome != 'success'
+        run: |
+          npm ci
+          npm run build
+
+      # 3. Always upload it (or re-upload it) so the matrix jobs can find it
+      - name: Ensure artifact is available for matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: ./dist
+          retention-days: 1
+
   test-matrix:
+    needs: download-or-build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,20 +57,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-
+      
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: build-output
           path: ./dist
-        continue-on-error: true
-        
-      - name: Install & Build (if artifact missing)
-        run: |
-          if [ ! -d "./dist" ]; then
-            echo "Artifact not found, building..."
-            npm ci && npm run build
-          fi
+
       - name: Run tests
         run: |
           NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
