@@ -22,12 +22,18 @@ jobs:
         run: npm ci
 
       - name: Build for release
+        id: build-for-release
         run: npm run build
 
-      - name: Test
-        run: npm test
+      - name: Run test workflow
+        id: run-tests
+        if: steps.build-for-release.outcome == 'success'
+        run: gh workflow run run_tests.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish new version to NPM
+        if: steps.run-tests.outcome == 'success'
         id: publish-to-npm
         run: npm publish
 
