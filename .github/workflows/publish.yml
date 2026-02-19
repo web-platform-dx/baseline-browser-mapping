@@ -37,9 +37,6 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
-    outputs:
-    status: ${{ steps.test.outcome }}
-
     needs: build
     uses: ./.github/workflows/run_tests.yml
 
