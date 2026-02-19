@@ -1,4 +1,4 @@
-name: Publish to NPM on new tag
+name: Publish
 
 on:
   workflow_dispatch:
@@ -11,12 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install environment
@@ -25,13 +24,13 @@ jobs:
       - name: Build for release
         run: npm run build
 
+      - name: Test
+        run: npm test
+
       - name: Publish new version to NPM
         id: publish-to-npm
-        run: |
-          echo "publishing"
-          npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
 permissions:
   id-token: write
+  contents: read
