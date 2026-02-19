@@ -10,6 +10,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
+    permissions:
+      actions: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +40,3 @@ jobs:
         if: steps.run-tests.outcome == 'success'
         id: publish-to-npm
         run: npm publish
-
-permissions:
-  id-token: write
-  contents: read

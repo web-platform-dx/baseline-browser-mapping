@@ -13,8 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      actions: write
       contents: write
-      id-token: write
+
 
     steps:
       - uses: actions/checkout@v2
@@ -67,20 +68,6 @@ jobs:
         run: |
           npm version patch -m "Patch to %s because browser or feature data changed"
           git push && git push --tags
-
-      # - name: Build for release
-      #   if: steps.tag-release.outcome == 'success'
-      #   id: build
-      #   run: npm run build
-
-      # - name: Publish new version to NPM
-      #   id: publish-to-npm
-      #   if: steps.build.outcome == 'success'
-      #   run: |
-      #     echo "publishing"
-      #     npm publish --provenance --access public
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Trigger publish workflow
         if: steps.tag-release.outcome == 'success'
