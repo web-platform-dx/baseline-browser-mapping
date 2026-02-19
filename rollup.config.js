@@ -12,7 +12,7 @@ export default [
       typescript({
         tsconfig: "./tsconfig.json",
         outDir: "dist",
-        target: "es2017",
+        target: "es2015",
       }),
       terser(),
     ],
@@ -27,7 +27,7 @@ export default [
       typescript({
         tsconfig: "./tsconfig.json",
         outDir: "dist",
-        target: "es2017",
+        target: "es2015",
       }),
       terser(),
     ],
@@ -35,13 +35,17 @@ export default [
   {
     input: "src/cli.ts",
     output: {
-      format: "es",
-      file: "dist/cli.js",
+      format: "cjs",
+      file: "dist/cli.cjs",
     },
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", outDir: "dist" }),
+      typescript({
+        tsconfig: "./tsconfig.json",
+        outDir: "dist",
+        target: "es2015",
+      }),
       terser(),
     ],
-    external: ["node:util", "node:process", "./index.js"],
+    external: ["node:util", "node:process", "./index.cjs"],
   },
 ];
