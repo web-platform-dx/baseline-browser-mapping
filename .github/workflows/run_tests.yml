@@ -47,7 +47,7 @@ jobs:
           retention-days: 1
 
   test-matrix:
-    needs: download-or-build
+    needs: prepare-build
     runs-on: ubuntu-latest
     strategy:
       matrix:
