@@ -4,18 +4,17 @@ on:
   workflow_dispatch:
   workflow_call:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   package_dir: "/"
 
 jobs:
-
   prepare-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       # 1. Check if the caller already provided a build
       - name: Try to download existing build artifact
         id: download-check
@@ -58,7 +57,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      
+
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:

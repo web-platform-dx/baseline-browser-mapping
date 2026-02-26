@@ -11,7 +11,6 @@ permissions:
   id-token: write
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -25,7 +24,6 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-      
 
       - name: Install and Build
         run: |
@@ -48,14 +46,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
-      
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
