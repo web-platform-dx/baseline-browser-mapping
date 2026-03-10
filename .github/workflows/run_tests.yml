@@ -39,6 +39,7 @@ jobs:
 
       # 3. Always upload it (or re-upload it) so the matrix jobs can find it
       - name: Ensure artifact is available for matrix
+        if: steps.download-check.outcome != 'success'
         uses: actions/upload-artifact@v4
         with:
           name: build-output
