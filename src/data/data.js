@@ -5831,10 +5831,6 @@ const data = {
     ],
     [
       "2015-07-29",
-      { c: "1", ca: "18", e: "12", f: "1", fa: "4", s: "3.1", si: "2" },
-    ],
-    [
-      "2015-07-29",
       { c: "1", ca: "18", e: "12", f: "3", fa: "4", s: "1", si: "1" },
     ],
     [
@@ -5855,5 +5851,5 @@ const data = {
     ],
   ],
 };
-const lastUpdated = 1775917608451;
+const lastUpdated = 1776179085029;
 export { data, lastUpdated };
