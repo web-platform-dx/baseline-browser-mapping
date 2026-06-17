@@ -1,6 +1,7 @@
 import {
   getCompatibleVersions,
   getAllVersions,
+  getTimeline,
   _resetHasWarned,
 } from "baseline-browser-mapping";
 import fs from "fs";
@@ -148,5 +149,35 @@ describe("getAllVersions default", () => {
     expect(csvExportLines[1].startsWith('"chrome","0","pre_baseline"')).toBe(
       true,
     );
+  });
+});
+
+describe("getTimeline", () => {
+  it("Returns a timeline object with keys for core browsers", () => {
+    const timeline = getTimeline();
+    expect(timeline).toBeDefined();
+    expect(typeof timeline).toBe("object");
+    expect(Array.isArray(timeline.chrome)).toBe(true);
+    expect(Array.isArray(timeline.safari)).toBe(true);
+    expect(Array.isArray(timeline.firefox)).toBe(true);
+  });
+
+  it("Timeline entries are sorted by date and have version strings", () => {
+    const timeline = getTimeline();
+    const chromeTimeline = timeline.chrome;
+    expect(chromeTimeline.length).toBeGreaterThan(0);
+
+    // Check structure of first entry
+    expect(chromeTimeline[0].date).toBeDefined();
+    expect(chromeTimeline[0].version).toBeDefined();
+
+    // Verify chronological sorting and ascending versions
+    for (let i = 1; i < chromeTimeline.length; i++) {
+      const prev = chromeTimeline[i - 1];
+      const curr = chromeTimeline[i];
+
+      // Date should be equal or later
+      expect(curr.date >= prev.date).toBe(true);
+    }
   });
 });

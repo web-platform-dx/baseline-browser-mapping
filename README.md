@@ -41,12 +41,13 @@ If you want to ensure [reproducible builds](https://www.wikiwand.com/en/articles
 
 ## Importing `baseline-browser-mapping`
 
-This module exposes two functions: `getCompatibleVersions()` and `getAllVersions()`, both which can be imported directly from `baseline-browser-mapping`:
+This module exposes three functions: `getCompatibleVersions()`, `getAllVersions()`, and `getTimeline()`, all of which can be imported directly from `baseline-browser-mapping`:
 
 ```javascript
 import {
   getCompatibleVersions,
   getAllVersions,
+  getTimeline,
 } from "baseline-browser-mapping";
 ```
 
@@ -57,6 +58,7 @@ If you want to load the script and data directly in a web page without hosting i
   import {
     getCompatibleVersions,
     getAllVersions,
+    getTimeline,
   } from "https://cdn.jsdelivr.net/npm/baseline-browser-mapping";
 </script>
 ```
@@ -404,6 +406,35 @@ The outputs of `getAllVersions()` are available as JSON or CSV files generated o
   - [CSV](https://web-platform-dx.github.io/baseline-browser-mapping/with_downstream/all_versions_with_supports.csv)
 
 These files are updated on a daily basis.
+
+## Get timeline of browser version compatibility bumps
+
+To calculate compatible browser versions on custom/arbitrary dates completely client-side without loading the full `@mdn/browser-compat-data` database, you can call the `getTimeline()` function. It returns the timeline of minimum version requirements for each core browser:
+
+```javascript
+import { getTimeline } from "baseline-browser-mapping";
+
+const timeline = getTimeline();
+```
+
+It returns an `Object` with arrays of transition events for each core browser:
+
+```javascript
+{
+  chrome: [
+    { date: "2015-07-29", version: "44" },
+    { date: "2016-03-02", version: "49" },
+    ...
+  ],
+  safari: [
+    { date: "2015-09-30", version: "9" },
+    ...
+  ],
+  ...
+}
+```
+
+Whenever a new web platform feature becomes Baseline-low, if it requires a higher version than the current minimum required version of a core browser, a transition event is added to the timeline with the date the feature became Baseline-low and the new required version.
 
 ## CLI
 
