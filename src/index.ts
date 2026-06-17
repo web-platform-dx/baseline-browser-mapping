@@ -831,3 +831,60 @@ export function getAllVersions(
 
   return outputArray;
 }
+
+export type TimelineEntry = {
+  date: string;
+  version: string;
+};
+
+export type Timeline = {
+  [browser: string]: TimelineEntry[];
+};
+
+/**
+ * Returns the timeline of minimum version changes for each core browser.
+ * Whenever a new feature becomes Baseline-low, if it increases the required version
+ * of a core browser, a new entry (date and version) is recorded in the timeline.
+ */
+export function getTimeline(): Timeline {
+  const timeline: Timeline = {};
+
+  bcdCoreBrowserNames.forEach((browser) => {
+    timeline[browser] = [];
+  });
+
+  const sortedFeatures = [...features]
+    .filter((f) => f.status.baseline_low_date)
+    .sort((a, b) => {
+      const dateA = stripLTEPrefix(a.status.baseline_low_date);
+      const dateB = stripLTEPrefix(b.status.baseline_low_date);
+      return dateA.localeCompare(dateB);
+    });
+
+  const currentMinVersions: { [browser: string]: string } = {};
+  bcdCoreBrowserNames.forEach((browser) => {
+    currentMinVersions[browser] = "0";
+  });
+
+  sortedFeatures.forEach((feature) => {
+    const date = stripLTEPrefix(feature.status.baseline_low_date);
+    Object.keys(feature.status.support).forEach((browser) => {
+      if (bcdCoreBrowserNames.includes(browser)) {
+        // @ts-ignore
+        const versionStr = feature.status.support[browser];
+        if (!versionStr) return;
+        const version = stripLTEPrefix(versionStr);
+        const currentVersion = currentMinVersions[browser] ?? "0";
+        if (compareVersions(version, currentVersion) === 1) {
+          currentMinVersions[browser] = version;
+          timeline[browser]!.push({
+            date: date,
+            version: version,
+          });
+        }
+      }
+    });
+  });
+
+  return timeline;
+}
