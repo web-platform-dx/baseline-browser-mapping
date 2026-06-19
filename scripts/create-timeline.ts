@@ -94,7 +94,6 @@ const acceptableStatuses: string[] = [
   "beta",
   "nightly",
 ];
-let suppressPre2015Warning: boolean = false;
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -246,14 +245,6 @@ const getCoreVersionsByDate = (
   date: Date,
   listAllCompatibleVersions: boolean = false,
 ): BrowserVersion[] => {
-  if (date.getFullYear() < 2015 && !suppressPre2015Warning) {
-    console.warn(
-      new Error(
-        "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
-      ),
-    );
-  }
-
   if (date.getFullYear() < 2002) {
     throw new Error(
       "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
@@ -421,6 +412,15 @@ const getChangedBrowserVersions = (
 };
 
 const createTimeline = () => {
+  const preBaselineVersions = getCoreVersionsByDate(
+    new Date("2002-01-01"),
+    true,
+  ).filter(
+    (version) =>
+      version.release_date &&
+      new Date(version.release_date) < new Date("2015-07-29"),
+  );
+
   let previousDateString = "2015-07-29";
   let currentDateString = "2015-07-30";
   const todayString = new Date().toISOString().slice(0, 10);
@@ -434,6 +434,7 @@ const createTimeline = () => {
   ];
 
   const timeline: Timeline = {
+    pre_baseline: preBaselineVersions,
     "2015-07-29": previousDateVersions,
   };
 
