@@ -178,7 +178,9 @@ const getMinimumVersionsFromFeatures = (
         minimumVersions[browserName] = {
           browser: browserName,
           version: version,
-          release_date: feature.baseline_low_date,
+          release_date: coreBrowserData.find(
+            (bcdBrowser) => bcdBrowser[0] === browserName,
+          )?.[1].releases[version]?.release_date,
         };
       }
     });
@@ -447,6 +449,7 @@ const createTimeline = () => {
     const currentDateCoreVersions = getCoreVersionsByDate(
       new Date(currentDateString),
     );
+
     const currentDateVersions = [
       ...currentDateCoreVersions,
       ...getDownstreamBrowsers(currentDateCoreVersions, false, true),
