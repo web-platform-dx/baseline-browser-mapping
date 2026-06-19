@@ -1,9 +1,44 @@
 import {
-  features,
-  bcdBrowsers,
-  otherBrowsers,
+  CondensedTimeline,
+  CondensedTimelineEntry,
   lastUpdated,
-} from "./scripts/expose-data.js";
+  timelineString,
+} from "./data/timeline.js";
+
+const timeline: CondensedTimeline = {};
+
+let changeDate = "";
+
+timelineString.split("\n").forEach((line) => {
+  if (!line) {
+    return;
+  }
+  if (line.startsWith("20")) {
+    line = line.trim();
+    changeDate = line;
+    timeline[changeDate] = [];
+    return;
+  } else {
+    const parts = line.split(",");
+    if (parts.length >= 3) {
+      const [shortName, version, releaseDate, engineVersion] = parts;
+      const entry: CondensedTimelineEntry = [
+        shortName! as any,
+        version!,
+        releaseDate!.trim(),
+      ];
+      if (engineVersion) {
+        entry.push(engineVersion.trim());
+      }
+      if (!timeline[changeDate]) {
+        throw new Error(
+          `Timeline entry for date ${changeDate} is undefined. This should not happen.`,
+        );
+      }
+      timeline[changeDate]!.push(entry);
+    }
+  }
+});
 
 let hasWarned = false;
 
@@ -38,30 +73,33 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   }
 };
 
-const bcdCoreBrowserNames: string[] = [
-  "chrome",
-  "chrome_android",
-  "edge",
-  "firefox",
-  "firefox_android",
-  "safari",
-  "safari_ios",
-];
-
-type Browser = {
-  releases: {
-    [version: string]: {
-      status: string;
-      release_date?: string;
-      engine?: string;
-      engine_version?: string;
-    };
-  };
+const nameMappings: {
+  [shortName: string]: { longName: string; engine?: string };
+} = {
+  c: { longName: "chrome" },
+  ca: { longName: "chrome_android" },
+  e: { longName: "edge" },
+  f: { longName: "firefox" },
+  fa: { longName: "firefox_android" },
+  s: { longName: "safari" },
+  si: { longName: "safari_ios" },
+  o: { longName: "opera", engine: "Blink" },
+  oa: { longName: "opera_android", engine: "Blink" },
+  sa: { longName: "samsunginternet_android", engine: "Blink" },
+  wva: { longName: "webview_android", engine: "Blink" },
+  y: { longName: "ya_android", engine: "Blink" },
+  u: { longName: "uc_android", engine: "Blink" },
+  q: { longName: "qq_android", engine: "Blink" },
+  k: { longName: "kai_os", engine: "Gecko" },
+  fb: { longName: "facebook_android", engine: "Blink" },
+  ia: { longName: "instagram_android", engine: "Blink" },
 };
 
-type BrowserData = {
-  [key: string]: Browser;
-};
+const coreBrowsers = Object.entries(nameMappings)
+  .filter(([, { engine }]) => engine === undefined)
+  .map(([shortName, { longName }]) => {
+    return { shortName: shortName, longName: longName };
+  });
 
 type BrowserVersion = {
   browser: string;
@@ -71,28 +109,17 @@ type BrowserVersion = {
   engine_version?: string;
 };
 
-interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number | string;
-  supports?: string;
-  wa_compatible?: boolean;
-}
-
 type NestedBrowserVersions = {
   [browser: string]: {
     [version: string]: AllBrowsersBrowserVersion;
   };
 };
 
-type Feature = {
-  baseline_low_date: string;
-  support: object;
-};
-
-const coreBrowserData: [string, Browser][] = Object.keys(
-  bcdBrowsers as BrowserData,
-)
-  .map((key) => [key, (bcdBrowsers as BrowserData)[key]] as [string, Browser])
-  .filter(([browserName]) => bcdCoreBrowserNames.includes(browserName));
+interface AllBrowsersBrowserVersion extends BrowserVersion {
+  year: number | string;
+  supports?: string;
+  wa_compatible?: boolean;
+}
 
 type versionsObject = {
   [browser: string]: BrowserVersion;
@@ -102,60 +129,39 @@ type YearVersions = {
   [year: string]: versionsObject;
 };
 
-const bcdDownstreamBrowserNames: string[] = [
-  "webview_android",
-  "samsunginternet_android",
-  "opera_android",
-  "opera",
-];
-const downstreamBrowserData: [string, Browser][] = [
-  ...Object.keys(bcdBrowsers as BrowserData)
-    .map((key) => [key, (bcdBrowsers as BrowserData)[key]] as [string, Browser])
-    .filter(([browserName]) => bcdDownstreamBrowserNames.includes(browserName)),
-  ...(Object.keys(otherBrowsers as BrowserData).map((key) => [
-    key,
-    (otherBrowsers as BrowserData)[key],
-  ]) as [string, Browser][]),
-];
-
-const acceptableStatuses: string[] = [
-  "current",
-  "esr",
-  "retired",
-  "unknown",
-  "beta",
-  "nightly",
-];
 let suppressPre2015Warning: boolean = false;
 
-const kaiOSWarning = (options: Options | AllVersionsOptions) => {
+const kaiOSWarning = (
+  // options: Options | AllVersionsOptions
+  options: Options,
+) => {
   if (
     options.includeDownstreamBrowsers === false &&
     options.includeKaiOS === true
   ) {
-    console.log(
-      new Error(
-        "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
-      ),
+    throw new Error(
+      "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
     );
-    if (typeof process !== "undefined" && process.exit) {
-      process.exit(1);
-    } else {
-      throw new Error(
-        "KaiOS configuration error: process.exit is not available",
-      );
-    }
   }
 };
 
-const stripLTEPrefix = (str: string): string => {
-  if (!str) {
-    return str;
+const reconstructBrowserVersion = (
+  shortName: string,
+  longName: string,
+  version: string,
+  releaseDate: string,
+  engineVersion?: string,
+) => {
+  const browserVersion: BrowserVersion = {
+    browser: longName,
+    version: version,
+    release_date: releaseDate,
+  };
+  if (engineVersion) {
+    browserVersion.engine_version = engineVersion;
+    browserVersion.engine = nameMappings[shortName]?.engine;
   }
-  if (!str.startsWith("≤")) {
-    return str;
-  }
-  return str.slice(1);
+  return browserVersion;
 };
 
 const compareVersions = (
@@ -183,247 +189,6 @@ const compareVersions = (
     return nextMinor > prevMinor ? 1 : -1;
   }
   return 0;
-};
-
-const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
-  return features
-    .filter(
-      (feature) =>
-        feature.status.baseline_low_date &&
-        new Date(feature.status.baseline_low_date) <= date,
-    )
-    .map((feature) => {
-      return {
-        baseline_low_date: feature.status.baseline_low_date as string,
-        support: feature.status.support,
-      };
-    });
-};
-
-const getMinimumVersionsFromFeatures = (
-  features: Feature[],
-): BrowserVersion[] => {
-  let minimumVersions: { [key: string]: BrowserVersion } = {};
-
-  coreBrowserData.forEach((browserData) => {
-    minimumVersions[browserData[0]] = {
-      browser: browserData[0],
-      version: "0",
-      release_date: "",
-    };
-  });
-
-  features.forEach((feature) => {
-    Object.keys(feature.support).forEach((browserName) => {
-      // @ts-ignore
-      const versionStr = feature.support[browserName];
-      const version = stripLTEPrefix(versionStr);
-      if (
-        minimumVersions[browserName] &&
-        compareVersions(
-          version,
-          stripLTEPrefix(minimumVersions[browserName].version),
-        ) === 1
-      ) {
-        minimumVersions[browserName] = {
-          browser: browserName,
-          version: version,
-          release_date: feature.baseline_low_date,
-        };
-      }
-    });
-  });
-
-  return Object.keys(minimumVersions).map(
-    (key) => minimumVersions[key],
-  ) as BrowserVersion[];
-};
-
-const getSubsequentVersions = (
-  minimumVersions: BrowserVersion[],
-): BrowserVersion[] => {
-  let subsequentVersions: BrowserVersion[] = [];
-
-  minimumVersions.forEach((minimumVersion: BrowserVersion) => {
-    let bcdBrowser = coreBrowserData.find(
-      (bcdBrowser) => bcdBrowser[0] === minimumVersion.browser,
-    );
-    if (bcdBrowser) {
-      let sortedVersions = Object.keys(bcdBrowser[1].releases)
-        .map(
-          (key) =>
-            [key, bcdBrowser[1].releases[key]] as [
-              string,
-              {
-                status: string;
-                release_date?: string;
-                engine?: string;
-                engine_version?: string;
-              },
-            ],
-        )
-        .filter(([, versionData]) => {
-          return acceptableStatuses.includes(versionData.status);
-        })
-        .sort((a, b) => {
-          return compareVersions(a[0], b[0]);
-        });
-
-      sortedVersions.forEach(([version, versionData]) => {
-        if (!acceptableStatuses.includes(versionData.status)) {
-          return false;
-        }
-        if (compareVersions(version, minimumVersion.version) === 1) {
-          subsequentVersions.push({
-            browser: minimumVersion.browser,
-            version: version,
-            release_date: versionData.release_date
-              ? versionData.release_date
-              : "unknown",
-          });
-          return true;
-        }
-        return false;
-      });
-    }
-  });
-  return subsequentVersions;
-};
-
-const getCoreVersionsByDate = (
-  date: Date,
-  listAllCompatibleVersions: boolean = false,
-): BrowserVersion[] => {
-  if (date.getFullYear() < 2015 && !suppressPre2015Warning) {
-    console.warn(
-      new Error(
-        "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
-      ),
-    );
-  }
-
-  if (date.getFullYear() < 2002) {
-    throw new Error(
-      "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
-    );
-  }
-
-  if (date.getFullYear() > new Date().getFullYear()) {
-    throw new Error(
-      "There are no browser versions compatible with Baseline in the future",
-    );
-  }
-
-  const compatibleFeatures = getCompatibleFeaturesByDate(date);
-  const minimumVersions = getMinimumVersionsFromFeatures(compatibleFeatures);
-
-  if (!listAllCompatibleVersions) {
-    return minimumVersions;
-  } else {
-    return [...minimumVersions, ...getSubsequentVersions(minimumVersions)].sort(
-      (a, b) => {
-        if (a.browser < b.browser) {
-          return -1;
-        } else if (a.browser > b.browser) {
-          return 1;
-        } else {
-          return compareVersions(a.version, b.version);
-        }
-      },
-    );
-  }
-};
-
-const getDownstreamBrowsers = (
-  inputArray: BrowserVersion[] = [],
-  listAllCompatibleVersions: boolean = true,
-  includeKaiOS: boolean = false,
-): BrowserVersion[] => {
-  const getMinimumVersion = (browserName: string): string | undefined => {
-    return inputArray && inputArray.length > 0
-      ? inputArray
-          .filter((browser: BrowserVersion) => browser.browser === browserName)
-          .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
-      : undefined;
-  };
-
-  const minimumChromeVersion = getMinimumVersion("chrome");
-  const minimumFirefoxVersion = getMinimumVersion("firefox");
-
-  if (!minimumChromeVersion && !minimumFirefoxVersion) {
-    throw new Error(
-      "There are no browser versions compatible with Baseline before Chrome and Firefox",
-    );
-  }
-
-  let downstreamArray: BrowserVersion[] = [];
-
-  downstreamBrowserData
-    .filter(([browser]) => {
-      if (browser === "kai_os" && !includeKaiOS) {
-        return false;
-      }
-      return true;
-    })
-    .forEach(([browserName, browserData]) => {
-      if (!browserData.releases) return;
-      // Only include versions with Blink or Gecko engine and engine_version >= minimum core version
-      let sortedAndFilteredVersions = Object.keys(browserData.releases)
-        .map(
-          (key) =>
-            [key, browserData.releases[key]] as [
-              string,
-              {
-                status: string;
-                release_date?: string;
-                engine?: string;
-                engine_version?: string;
-              },
-            ],
-        )
-        .filter(([, versionData]) => {
-          // @ts-ignore
-          const { engine, engine_version } = versionData;
-          if (!engine || !engine_version) return false;
-
-          if (engine === "Blink" && minimumChromeVersion) {
-            return compareVersions(engine_version, minimumChromeVersion) >= 0;
-          }
-          if (engine === "Gecko" && minimumFirefoxVersion) {
-            return compareVersions(engine_version, minimumFirefoxVersion) >= 0;
-          }
-          return false;
-        })
-        .sort((a, b) => {
-          // @ts-ignore
-          return compareVersions(a[0], b[0]);
-        });
-
-      for (let i = 0; i < sortedAndFilteredVersions.length; i++) {
-        const versionEntry = sortedAndFilteredVersions[i];
-        if (versionEntry) {
-          const [versionNumber, versionData] = versionEntry;
-          let outputArray: BrowserVersion = {
-            browser: browserName,
-            version: versionNumber,
-            release_date: versionData.release_date ?? "unknown",
-          };
-
-          if (versionData.engine && versionData.engine_version) {
-            outputArray.engine = versionData.engine;
-            outputArray.engine_version = versionData.engine_version;
-          }
-
-          downstreamArray.push(outputArray);
-
-          if (!listAllCompatibleVersions) {
-            break;
-          }
-        }
-      }
-    });
-
-  return downstreamArray;
 };
 
 type Options = {
@@ -491,23 +256,12 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
   let targetDate: Date = new Date();
 
-  kaiOSWarning(options);
-
   if (!options.widelyAvailableOnDate && !options.targetYear) {
     targetDate = new Date();
   } else if (options.targetYear && options.widelyAvailableOnDate) {
-    console.log(
-      new Error(
-        "You cannot use targetYear and widelyAvailableOnDate at the same time.  Please remove one of these options and try again.",
-      ),
+    throw new Error(
+      "You cannot use targetYear and widelyAvailableOnDate at the same time.  Please remove one of these options and try again.",
     );
-    if (typeof process !== "undefined" && process.exit) {
-      process.exit(1);
-    } else {
-      throw new Error(
-        "Configuration error: targetYear and widelyAvailableOnDate cannot be used together",
-      );
-    }
   } else if (options.widelyAvailableOnDate) {
     targetDate = new Date(options.widelyAvailableOnDate);
   } else if (options.targetYear) {
@@ -519,27 +273,107 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     targetDate.setMonth(targetDate.getMonth() - 30);
   }
 
-  let coreBrowserArray = getCoreVersionsByDate(
-    targetDate,
-    options.listAllCompatibleVersions,
-  );
-
   if (!options.suppressWarnings) {
     checkUpdate(targetDate, options.overrideLastUpdated);
+    kaiOSWarning(options);
+    if (targetDate.getFullYear() < 2015 && !suppressPre2015Warning) {
+      console.warn(
+        new Error(
+          "There are no browser versions compatible with Baseline before 2015.  You may receive unexpected results.",
+        ),
+      );
+    }
+
+    if (targetDate.getFullYear() < 2002) {
+      throw new Error(
+        "None of the browsers in the core set were released before 2002.  Please use a date after 2002.",
+      );
+    }
+
+    if (targetDate.getFullYear() > new Date().getFullYear()) {
+      throw new Error(
+        "There are no browser versions compatible with Baseline in the future",
+      );
+    }
   }
 
-  if (options.includeDownstreamBrowsers === false) {
-    return coreBrowserArray;
-  } else {
-    return [
-      ...coreBrowserArray,
-      ...getDownstreamBrowsers(
-        coreBrowserArray,
-        options.listAllCompatibleVersions,
-        options.includeKaiOS,
-      ),
-    ];
-  }
+  let condensedBrowserVersions: CondensedTimelineEntry[] = [];
+
+  Object.entries(nameMappings).forEach(([shortName]) => {
+    const reducedTimeline = Object.entries(timeline).reduce<
+      Record<string, CondensedTimelineEntry | undefined>
+    >((output, [changeDate, changeList]) => {
+      const match = changeList.find((change) => change[0] === shortName);
+      if (match) {
+        output[changeDate] = match;
+      }
+      return output;
+    }, {});
+
+    if (Object.keys(reducedTimeline).length === 0) {
+      return;
+    }
+
+    const afterChangeIndex = Object.keys(reducedTimeline).findIndex(
+      (changeDate) => new Date(changeDate) > targetDate,
+    );
+
+    const beforeChangeDate =
+      Object.keys(reducedTimeline)[afterChangeIndex - 1] ?? "2015-07-29";
+
+    if (
+      options.listAllCompatibleVersions &&
+      reducedTimeline[beforeChangeDate]
+    ) {
+      const beforeChangeIndex =
+        Object.keys(reducedTimeline).indexOf(beforeChangeDate);
+
+      if (beforeChangeIndex !== -1) {
+        const entries = Object.values(reducedTimeline)
+          .slice(beforeChangeIndex)
+          .filter(
+            (entry): entry is CondensedTimelineEntry => entry !== undefined,
+          );
+        condensedBrowserVersions.push(...entries);
+      }
+    } else {
+      const entry = reducedTimeline[beforeChangeDate];
+      if (entry) {
+        condensedBrowserVersions.push(entry);
+      }
+    }
+  });
+
+  let browsers: BrowserVersion[] = condensedBrowserVersions
+    .filter(([shortName]) => {
+      if (!options.includeKaiOS && shortName === "k") {
+        return false;
+      }
+      if (
+        !options.includeDownstreamBrowsers &&
+        coreBrowsers.map((b) => b.shortName).indexOf(shortName) === -1
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .map(([shortName, version, releaseDate, engineVersion]) => {
+      const longName = nameMappings[shortName]
+        ? nameMappings[shortName].longName
+        : shortName;
+
+      let browserVersion = reconstructBrowserVersion(
+        shortName,
+        longName,
+        version,
+        releaseDate,
+        engineVersion,
+      );
+
+      return browserVersion;
+    });
+
+  return browsers as BrowserVersion[];
 }
 
 type AllVersionsOptions = {
@@ -640,67 +474,77 @@ export function getAllVersions(
 
   const outputArray: AllBrowsersBrowserVersion[] = [];
 
-  bcdCoreBrowserNames.forEach((browserName) => {
-    let thisBrowserAllVersions = allVersions
-      .filter((version) => version.browser == browserName)
-      .sort((a, b) => {
-        return compareVersions(a.version, b.version);
-      });
-
-    let waVersion = waObject[browserName]?.version ?? "0";
-    let naVersion = naObject[browserName]?.version ?? "0";
-
-    yearArray.forEach((year) => {
-      if (yearMinimumVersions[year]) {
-        let minBrowserVersionInfo = yearMinimumVersions[year][browserName] ?? {
-          version: "0",
-        };
-        let minBrowserVersion = minBrowserVersionInfo.version;
-        let sliceIndex = thisBrowserAllVersions.findIndex(
-          (element) =>
-            compareVersions(element.version, minBrowserVersion) === 0,
-        );
-
-        let subArray =
-          year === nextYear - 1
-            ? thisBrowserAllVersions
-            : thisBrowserAllVersions.slice(0, sliceIndex);
-
-        subArray.forEach((version) => {
-          let isWaCompatible = compareVersions(version.version, waVersion) >= 0;
-          let isNaCompatible = compareVersions(version.version, naVersion) >= 0;
-
-          let versionToPush: AllBrowsersBrowserVersion = {
-            ...version,
-            year: year <= 2015 ? "pre_baseline" : year - 1,
-          };
-
-          if (options.useSupports) {
-            if (isWaCompatible) versionToPush.supports = "widely";
-            if (isNaCompatible) versionToPush.supports = "newly";
-          } else {
-            versionToPush = {
-              ...versionToPush,
-              wa_compatible: isWaCompatible,
-            };
-          }
-
-          outputArray.push(versionToPush);
+  coreBrowsers
+    .map((browser) => browser.longName)
+    .forEach((browserName) => {
+      let thisBrowserAllVersions = allVersions
+        .filter((version) => version.browser == browserName)
+        .sort((a, b) => {
+          return compareVersions(a.version, b.version);
         });
 
-        thisBrowserAllVersions = thisBrowserAllVersions.slice(
-          sliceIndex,
-          thisBrowserAllVersions.length,
-        );
-      }
+      let waVersion = waObject[browserName]?.version ?? "0";
+      let naVersion = naObject[browserName]?.version ?? "0";
+
+      yearArray.forEach((year) => {
+        if (yearMinimumVersions[year]) {
+          let minBrowserVersionInfo = yearMinimumVersions[year][
+            browserName
+          ] ?? {
+            version: "0",
+          };
+          let minBrowserVersion = minBrowserVersionInfo.version;
+          let sliceIndex = thisBrowserAllVersions.findIndex(
+            (element) =>
+              compareVersions(element.version, minBrowserVersion) === 0,
+          );
+
+          let subArray =
+            year === nextYear - 1
+              ? thisBrowserAllVersions
+              : thisBrowserAllVersions.slice(0, sliceIndex);
+
+          subArray.forEach((version) => {
+            let isWaCompatible =
+              compareVersions(version.version, waVersion) >= 0;
+            let isNaCompatible =
+              compareVersions(version.version, naVersion) >= 0;
+
+            let versionToPush: AllBrowsersBrowserVersion = {
+              ...version,
+              year: year <= 2015 ? "pre_baseline" : year - 1,
+            };
+
+            if (options.useSupports) {
+              if (isWaCompatible) versionToPush.supports = "widely";
+              if (isNaCompatible) versionToPush.supports = "newly";
+            } else {
+              versionToPush = {
+                ...versionToPush,
+                wa_compatible: isWaCompatible,
+              };
+            }
+
+            outputArray.push(versionToPush);
+          });
+
+          thisBrowserAllVersions = thisBrowserAllVersions.slice(
+            sliceIndex,
+            thisBrowserAllVersions.length,
+          );
+        }
+      });
     });
-  });
 
   if (options.includeDownstreamBrowsers) {
-    let downstreamBrowsers = getDownstreamBrowsers(
-      outputArray,
-      true,
-      options.includeKaiOS,
+    let downstreamBrowsers = getCompatibleVersions({
+      listAllCompatibleVersions: true,
+      includeDownstreamBrowsers: true,
+      includeKaiOS: options.includeKaiOS,
+      suppressWarnings: options.suppressWarnings,
+    }).filter(
+      (version) =>
+        !coreBrowsers.map((b) => b.longName).includes(version.browser),
     );
 
     downstreamBrowsers.forEach((version: BrowserVersion) => {
@@ -830,61 +674,4 @@ export function getAllVersions(
   }
 
   return outputArray;
-}
-
-export type TimelineEntry = {
-  date: string;
-  version: string;
-};
-
-export type Timeline = {
-  [browser: string]: TimelineEntry[];
-};
-
-/**
- * Returns the timeline of minimum version changes for each core browser.
- * Whenever a new feature becomes Baseline-low, if it increases the required version
- * of a core browser, a new entry (date and version) is recorded in the timeline.
- */
-export function getTimeline(): Timeline {
-  const timeline: Timeline = {};
-
-  bcdCoreBrowserNames.forEach((browser) => {
-    timeline[browser] = [];
-  });
-
-  const sortedFeatures = [...features]
-    .filter((f) => f.status.baseline_low_date)
-    .sort((a, b) => {
-      const dateA = stripLTEPrefix(a.status.baseline_low_date);
-      const dateB = stripLTEPrefix(b.status.baseline_low_date);
-      return dateA.localeCompare(dateB);
-    });
-
-  const currentMinVersions: { [browser: string]: string } = {};
-  bcdCoreBrowserNames.forEach((browser) => {
-    currentMinVersions[browser] = "0";
-  });
-
-  sortedFeatures.forEach((feature) => {
-    const date = stripLTEPrefix(feature.status.baseline_low_date);
-    Object.keys(feature.status.support).forEach((browser) => {
-      if (bcdCoreBrowserNames.includes(browser)) {
-        // @ts-ignore
-        const versionStr = feature.status.support[browser];
-        if (!versionStr) return;
-        const version = stripLTEPrefix(versionStr);
-        const currentVersion = currentMinVersions[browser] ?? "0";
-        if (compareVersions(version, currentVersion) === 1) {
-          currentMinVersions[browser] = version;
-          timeline[browser]!.push({
-            date: date,
-            version: version,
-          });
-        }
-      }
-    });
-  });
-
-  return timeline;
 }

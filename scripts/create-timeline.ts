@@ -1,7 +1,6 @@
 import { features as featuresObject } from "web-features";
 import bcd from "@mdn/browser-compat-data";
 import downstreamBrowsers from "../src/data/downstream-browsers.json" with { type: "json" };
-import { data, lastUpdated } from "../src/data/data.js";
 import { writeFileSync } from "fs";
 
 const bcdBrowsers = bcd.browsers as BrowserData;
@@ -17,39 +16,6 @@ const features: RawFeature[] = Object.entries(featuresObject).reduce(
   },
   [],
 );
-
-let hasWarned = false;
-
-export function _resetHasWarned() {
-  hasWarned = false;
-}
-
-const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
-  if (
-    hasWarned ||
-    (typeof process !== "undefined" &&
-      process.env &&
-      (process.env.BROWSERSLIST_IGNORE_OLD_DATA ||
-        process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA))
-  ) {
-    return;
-  }
-
-  const twoMonthsAgo = new Date();
-  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-
-  const lastUpdatedToUse = lastUpdatedOverride ?? lastUpdated;
-
-  if (targetDate > twoMonthsAgo && lastUpdatedToUse < twoMonthsAgo.getTime()) {
-    console.warn(
-      "[baseline-browser-mapping] The data in this module is over two months old and you are targetting a recent feature cut off date of " +
-      targetDate.toISOString().slice(0, 10) +
-      ". To ensure accurate Baseline data, please update to the latest version of this module using the package manager of your choice." +
-      "You can suppress these warnings using the environment variables `BROWSERSLIST_IGNORE_OLD_DATA=true` or `BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true` or by passing `suppressWarnings: true` when you call `getCompatibleVersions()` or `getAllVersions()`.",
-    );
-    hasWarned = true;
-  }
-};
 
 const bcdCoreBrowserNames: string[] = [
   "chrome",
@@ -84,18 +50,6 @@ type BrowserVersion = {
   engine_version?: string;
 };
 
-interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number | string;
-  supports?: string;
-  wa_compatible?: boolean;
-}
-
-type NestedBrowserVersions = {
-  [browser: string]: {
-    [version: string]: AllBrowsersBrowserVersion;
-  };
-};
-
 type RawFeature = {
   kind: "feature";
   status: {
@@ -115,14 +69,6 @@ const coreBrowserData: [string, Browser][] = Object.keys(
 )
   .map((key) => [key, (bcdBrowsers as BrowserData)[key]] as [string, Browser])
   .filter(([browserName]) => bcdCoreBrowserNames.includes(browserName));
-
-type versionsObject = {
-  [browser: string]: BrowserVersion;
-};
-
-type YearVersions = {
-  [year: string]: versionsObject;
-};
 
 const bcdDownstreamBrowserNames: string[] = [
   "webview_android",
@@ -149,26 +95,6 @@ const acceptableStatuses: string[] = [
   "nightly",
 ];
 let suppressPre2015Warning: boolean = false;
-
-const kaiOSWarning = (options: Options | AllVersionsOptions) => {
-  if (
-    options.includeDownstreamBrowsers === false &&
-    options.includeKaiOS === true
-  ) {
-    console.log(
-      new Error(
-        "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
-      ),
-    );
-    if (typeof process !== "undefined" && process.exit) {
-      process.exit(1);
-    } else {
-      throw new Error(
-        "KaiOS configuration error: process.exit is not available",
-      );
-    }
-  }
-};
 
 const stripLTEPrefix = (str: string): string => {
   if (!str) {
@@ -303,7 +229,7 @@ const getSubsequentVersions = (
             version: version,
             release_date: versionData.release_date
               ? versionData.release_date
-              : "unknown",
+              : "u",
           });
           return true;
         }
@@ -366,8 +292,8 @@ const getDownstreamBrowsers = (
   const getMinimumVersion = (browserName: string): string | undefined => {
     return inputArray && inputArray.length > 0
       ? inputArray
-        .filter((browser: BrowserVersion) => browser.browser === browserName)
-        .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
+          .filter((browser: BrowserVersion) => browser.browser === browserName)
+          .sort((a, b) => compareVersions(a.version, b.version))[0]?.version
       : undefined;
   };
 
@@ -430,7 +356,7 @@ const getDownstreamBrowsers = (
           let outputArray: BrowserVersion = {
             browser: browserName,
             version: versionNumber,
-            release_date: versionData.release_date ?? "unknown",
+            release_date: versionData.release_date ?? "u",
           };
 
           if (versionData.engine && versionData.engine_version) {
@@ -450,415 +376,14 @@ const getDownstreamBrowsers = (
   return downstreamArray;
 };
 
-type Options = {
-  /**
-   * Whether to include only the minimum compatible browser versions or all compatible versions.
-   * Defaults to `false`.
-   */
-  listAllCompatibleVersions?: boolean;
-  /**
-   * Whether to include browsers that use the same engines as a core Baseline browser.
-   * Defaults to `false`.
-   */
-  includeDownstreamBrowsers?: boolean;
-  /**
-   * Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely available on the specified date.
-   * If left undefined and a `targetYear` is not passed, defaults to Widely available as of the current date.
-   * > NOTE: cannot be used with `targetYear`.
-   */
-  widelyAvailableOnDate?: string | number;
-  /**
-   * Pass a year between 2015 and the current year to get browser versions compatible with all
-   * Newly Available features as of the end of the year specified.
-   * > NOTE: cannot be used with `widelyAvailableOnDate`.
-   */
-  targetYear?: number;
-  /**
-   * Pass a boolean that determines whether KaiOS is included in browser mappings.  KaiOS implements
-   * the Gecko engine used in Firefox.  However, KaiOS also has a different interaction paradigm to
-   * other browsers and requires extra consideration beyond simple feature compatibility to provide
-   * an optimal user experience.  Defaults to `false`.
-   */
-  includeKaiOS?: boolean;
-  overrideLastUpdated?: number;
-  /**
-   * Pass a boolean to suppress the warning about stale data.
-   * Defaults to `false`.
-   */
-  suppressWarnings?: boolean;
-};
-
-/**
- * Returns browser versions compatible with specified Baseline targets.
- * Defaults to returning the minimum versions of the core browser set that support Baseline Widely available.
- * Takes an optional configuration `Object` with four optional properties:
- * - `listAllCompatibleVersions`: `false` (default) or `true`
- * - `includeDownstreamBrowsers`: `false` (default) or `true`
- * - `widelyAvailableOnDate`: date in format `YYYY-MM-DD`
- * - `targetYear`: year in format `YYYY`
- * - `supressWarnings`: `false` (default) or `true`
- */
-export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
-  let incomingOptions = userOptions ?? {};
-
-  let options: Options = {
-    listAllCompatibleVersions:
-      incomingOptions.listAllCompatibleVersions ?? false,
-    includeDownstreamBrowsers:
-      incomingOptions.includeDownstreamBrowsers ?? false,
-    widelyAvailableOnDate: incomingOptions.widelyAvailableOnDate ?? undefined,
-    targetYear: incomingOptions.targetYear ?? undefined,
-    includeKaiOS: incomingOptions.includeKaiOS ?? false,
-    overrideLastUpdated: incomingOptions.overrideLastUpdated ?? undefined,
-    suppressWarnings: incomingOptions.suppressWarnings ?? false,
-  };
-
-  let targetDate: Date = new Date();
-
-  kaiOSWarning(options);
-
-  if (!options.widelyAvailableOnDate && !options.targetYear) {
-    targetDate = new Date();
-  } else if (options.targetYear && options.widelyAvailableOnDate) {
-    console.log(
-      new Error(
-        "You cannot use targetYear and widelyAvailableOnDate at the same time.  Please remove one of these options and try again.",
-      ),
-    );
-    if (typeof process !== "undefined" && process.exit) {
-      process.exit(1);
-    } else {
-      throw new Error(
-        "Configuration error: targetYear and widelyAvailableOnDate cannot be used together",
-      );
-    }
-  } else if (options.widelyAvailableOnDate) {
-    targetDate = new Date(options.widelyAvailableOnDate);
-  } else if (options.targetYear) {
-    targetDate = new Date(`${options.targetYear}-12-31`);
-  }
-
-  // Sets a cutoff date for feature interoperability 30 months before the stated date
-  if (options.widelyAvailableOnDate || options.targetYear === undefined) {
-    targetDate.setMonth(targetDate.getMonth() - 30);
-  }
-
-  let coreBrowserArray = getCoreVersionsByDate(
-    targetDate,
-    options.listAllCompatibleVersions,
-  );
-
-  if (!options.suppressWarnings) {
-    checkUpdate(targetDate, options.overrideLastUpdated);
-  }
-
-  if (options.includeDownstreamBrowsers === false) {
-    return coreBrowserArray;
-  } else {
-    return [
-      ...coreBrowserArray,
-      ...getDownstreamBrowsers(
-        coreBrowserArray,
-        options.listAllCompatibleVersions,
-        options.includeKaiOS,
-      ),
-    ];
-  }
-}
-
-type AllVersionsOptions = {
-  /**
-   * Whether to return the output as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
-   * Defaults to `"array"`.
-   */
-  outputFormat?: string;
-  /**
-   * Whether to include browsers that use the same engines as a core Baseline browser.
-   * Defaults to `false`.
-   */
-  includeDownstreamBrowsers?: boolean;
-  /**
-   * Whether to use the new "supports" property in place of "wa_compatible"
-   * Defaults to `false`
-   */
-  useSupports?: boolean;
-  /**
-   * Whether to include KaiOS in the output. KaiOS implements the Gecko engine used in Firefox.
-   * However, KaiOS also has a different interaction paradigm to other browsers and requires extra
-   * consideration beyond simple feature compatibility to provide an optimal user experience.
-   */
-  includeKaiOS?: boolean;
-  /**
-   * Pass a boolean to suppress the warning about old data.
-   * Defaults to `false`.
-   */
-  suppressWarnings?: boolean;
-};
-
-/**
- * Returns all browser versions known to this module with their level of Baseline support as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
- * Takes an optional configuration `Object` with three optional properties:
- * - `includeDownstreamBrowsers`: `false` (default) or `true`
- * - `outputFormat`: `"array"` (default), `"object"` or `"csv"`
- * - `useSupports`: `false` (default) or `true`, replaces `wa_compatible` property with optional `supports` property which returns `widely` or `newly` available when present.
- * - `supressWarnings`: `false` (default) or `true`
- */
-export function getAllVersions(
-  userOptions?: AllVersionsOptions,
-): AllBrowsersBrowserVersion[] | NestedBrowserVersions | string {
-  suppressPre2015Warning = true;
-
-  let incomingOptions = userOptions ?? {};
-
-  let options: AllVersionsOptions = {
-    outputFormat: incomingOptions.outputFormat ?? "array",
-    includeDownstreamBrowsers:
-      incomingOptions.includeDownstreamBrowsers ?? false,
-    useSupports: incomingOptions.useSupports ?? false,
-    includeKaiOS: incomingOptions.includeKaiOS ?? false,
-    suppressWarnings: incomingOptions.suppressWarnings ?? false,
-  };
-
-  kaiOSWarning(options);
-
-  let nextYear = new Date().getFullYear() + 1;
-
-  const yearArray = [...Array(nextYear).keys()].slice(2002);
-  const yearMinimumVersions: YearVersions = {};
-  yearArray.forEach((year: number) => {
-    yearMinimumVersions[year] = {};
-    getCompatibleVersions({
-      targetYear: year,
-      suppressWarnings: options.suppressWarnings,
-    }).forEach((version) => {
-      if (yearMinimumVersions[year])
-        yearMinimumVersions[year][version.browser] = version;
-    });
-  });
-
-  const waMinimumVersions = getCompatibleVersions({
-    suppressWarnings: options.suppressWarnings,
-  });
-  const waObject: versionsObject = {};
-  waMinimumVersions.forEach((version: BrowserVersion) => {
-    waObject[version.browser] = version;
-  });
-
-  const thirtyMonthsFromToday = new Date();
-  thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
-  const naMinimumVersions = getCompatibleVersions({
-    widelyAvailableOnDate: thirtyMonthsFromToday.toISOString().slice(0, 10),
-    suppressWarnings: options.suppressWarnings,
-  });
-
-  const naObject: versionsObject = {};
-  naMinimumVersions.forEach((version: BrowserVersion) => {
-    naObject[version.browser] = version;
-  });
-
-  const allVersions = getCompatibleVersions({
-    targetYear: 2002,
-    listAllCompatibleVersions: true,
-    suppressWarnings: options.suppressWarnings,
-  });
-
-  const outputArray: AllBrowsersBrowserVersion[] = [];
-
-  bcdCoreBrowserNames.forEach((browserName) => {
-    let thisBrowserAllVersions = allVersions
-      .filter((version) => version.browser == browserName)
-      .sort((a, b) => {
-        return compareVersions(a.version, b.version);
-      });
-
-    let waVersion = waObject[browserName]?.version ?? "0";
-    let naVersion = naObject[browserName]?.version ?? "0";
-
-    yearArray.forEach((year) => {
-      if (yearMinimumVersions[year]) {
-        let minBrowserVersionInfo = yearMinimumVersions[year][browserName] ?? {
-          version: "0",
-        };
-        let minBrowserVersion = minBrowserVersionInfo.version;
-        let sliceIndex = thisBrowserAllVersions.findIndex(
-          (element) =>
-            compareVersions(element.version, minBrowserVersion) === 0,
-        );
-
-        let subArray =
-          year === nextYear - 1
-            ? thisBrowserAllVersions
-            : thisBrowserAllVersions.slice(0, sliceIndex);
-
-        subArray.forEach((version) => {
-          let isWaCompatible = compareVersions(version.version, waVersion) >= 0;
-          let isNaCompatible = compareVersions(version.version, naVersion) >= 0;
-
-          let versionToPush: AllBrowsersBrowserVersion = {
-            ...version,
-            year: year <= 2015 ? "pre_baseline" : year - 1,
-          };
-
-          if (options.useSupports) {
-            if (isWaCompatible) versionToPush.supports = "widely";
-            if (isNaCompatible) versionToPush.supports = "newly";
-          } else {
-            versionToPush = {
-              ...versionToPush,
-              wa_compatible: isWaCompatible,
-            };
-          }
-
-          outputArray.push(versionToPush);
-        });
-
-        thisBrowserAllVersions = thisBrowserAllVersions.slice(
-          sliceIndex,
-          thisBrowserAllVersions.length,
-        );
-      }
-    });
-  });
-
-  if (options.includeDownstreamBrowsers) {
-    let downstreamBrowsers = getDownstreamBrowsers(
-      outputArray,
-      true,
-      options.includeKaiOS,
-    );
-
-    downstreamBrowsers.forEach((version: BrowserVersion) => {
-      let correspondingChromiumVersion = outputArray.find(
-        (upstreamVersion) =>
-          upstreamVersion.browser === "chrome" &&
-          upstreamVersion.version === version.engine_version,
-      );
-      if (correspondingChromiumVersion) {
-        if (options.useSupports) {
-          outputArray.push({
-            ...version,
-            year: correspondingChromiumVersion.year,
-            supports: correspondingChromiumVersion.supports,
-          });
-        } else {
-          outputArray.push({
-            ...version,
-            year: correspondingChromiumVersion.year,
-            wa_compatible: correspondingChromiumVersion.wa_compatible,
-          });
-        }
-      }
-    });
-  }
-
-  outputArray.sort((a, b) => {
-    // Sort by year: "pre_baseline" first, then numerical year in ascending order
-    if (a.year === "pre_baseline" && b.year !== "pre_baseline") {
-      return -1;
-    }
-    if (b.year === "pre_baseline" && a.year !== "pre_baseline") {
-      return 1;
-    }
-    if (a.year !== "pre_baseline" && b.year !== "pre_baseline") {
-      if (a.year < b.year) {
-        return -1;
-      }
-      if (a.year > b.year) {
-        return 1;
-      }
-    }
-
-    // Sort by browser alphabetically
-    if (a.browser < b.browser) {
-      return -1;
-    }
-    if (a.browser > b.browser) {
-      return 1;
-    }
-
-    // Sort by version using compareVersions
-    return compareVersions(a.version, b.version);
-  });
-
-  if (options.outputFormat === "object") {
-    const outputObject: NestedBrowserVersions = {};
-
-    outputArray.forEach((version: AllBrowsersBrowserVersion) => {
-      if (!outputObject[version.browser]) {
-        outputObject[version.browser] = {};
-      }
-      let versionToAdd = {
-        year: version.year,
-        release_date: version.release_date,
-        engine: version.engine,
-        engine_version: version.engine_version,
-      };
-
-      if (options.useSupports) {
-        //@ts-ignore
-        outputObject[version.browser][version.version] = version.supports
-          ? { ...versionToAdd, supports: version.supports }
-          : versionToAdd;
-      } else {
-        //@ts-ignores
-        outputObject[version.browser][version.version] = {
-          ...versionToAdd,
-          wa_compatible: version.wa_compatible,
-        };
-      }
-    });
-
-    return outputObject ?? {};
-  }
-
-  if (options.outputFormat === "csv") {
-    let outputString =
-      `"browser","version","year",` +
-      `"${options.useSupports ? "supports" : "wa_compatible"}",` +
-      `"release_date","engine","engine_version"`;
-
-    outputArray.forEach((version) => {
-      let outputs: {
-        browser: string;
-        version: string;
-        year: number | string;
-        release_date: string;
-        engine: string;
-        engine_version: string;
-        supports?: string;
-        wa_compatible?: boolean;
-      } = {
-        browser: version.browser,
-        version: version.version,
-        year: version.year,
-        release_date: version.release_date ?? "NULL",
-        engine: version.engine ?? "NULL",
-        engine_version: version.engine_version ?? "NULL",
-      };
-
-      outputs = options.useSupports
-        ? { ...outputs, supports: version.supports ?? "" }
-        : { ...outputs, wa_compatible: version.wa_compatible };
-
-      outputString +=
-        `\n"${outputs.browser}","` +
-        `${outputs.version}","` +
-        `${outputs.year}","` +
-        `${options.useSupports ? outputs.supports : outputs.wa_compatible}","` +
-        `${outputs.release_date}","` +
-        `${outputs.engine}","` +
-        `${outputs.engine_version}"`;
-    });
-
-    return outputString;
-  }
-
-  return outputArray;
-}
-
 export type TimelineEntry = BrowserVersion[];
 
-export type CondensedTimelineEntry = [string, string, string];
+export type CondensedTimelineEntry = [
+  string, // browser (using shorthand)
+  string, // version
+  string, // release date
+  string?, // engine version
+];
 
 export type Timeline = {
   [date: string]: TimelineEntry;
@@ -872,101 +397,132 @@ const incrementDate = (dateString: string): string => {
   const date = new Date(dateString);
   date.setDate(date.getDate() + 1);
   return date.toISOString().slice(0, 10);
-}
+};
 
-const getChangedBrowserVersions = (previousVersions: BrowserVersion[], currentVersions: BrowserVersion[]) => {
-
+const getChangedBrowserVersions = (
+  previousVersions: BrowserVersion[],
+  currentVersions: BrowserVersion[],
+) => {
   const changed: BrowserVersion[] = [];
 
   currentVersions.forEach((curr) => {
-    if (previousVersions.find(prev => (prev.browser === curr.browser && prev.version != curr.version))) {
+    if (
+      previousVersions.find(
+        (prev) => prev.browser === curr.browser && prev.version != curr.version,
+      )
+    ) {
       changed.push(curr);
     }
   });
 
   return changed;
-}
-
-
+};
 
 const createTimeline = () => {
-  const thirtyMonthsFromToday = new Date();
-  thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
+  let previousDateString = "2015-07-29";
+  let currentDateString = "2015-07-30";
+  const todayString = new Date().toISOString().slice(0, 10);
 
-  let previousDateString = '2018-01-29';
-  let currentDateString = '2018-01-30';
-  const thirtyMonthsFromTodayString = thirtyMonthsFromToday.toISOString().slice(0, 10);
-
-  const previousDateVersions = getCompatibleVersions({
-    widelyAvailableOnDate: previousDateString,
-    includeDownstreamBrowsers: true,
-    includeKaiOS: true,
-  });
+  const previousDateCoreVersions = getCoreVersionsByDate(
+    new Date(previousDateString),
+  );
+  const previousDateVersions = [
+    ...previousDateCoreVersions,
+    ...getDownstreamBrowsers(previousDateCoreVersions, false, true),
+  ];
 
   const timeline: Timeline = {
-    '2018-01-29': previousDateVersions
+    "2015-07-29": previousDateVersions,
   };
 
-  while (currentDateString != thirtyMonthsFromTodayString) {
+  while (new Date(currentDateString) <= new Date(todayString)) {
+    const previousDateCoreVersions = getCoreVersionsByDate(
+      new Date(previousDateString),
+    );
+    const previousDateVersions = [
+      ...previousDateCoreVersions,
+      ...getDownstreamBrowsers(previousDateCoreVersions, false, true),
+    ];
 
-    const previousDateVersions = getCompatibleVersions({
-      widelyAvailableOnDate: previousDateString,
-      includeDownstreamBrowsers: true,
-      includeKaiOS: true,
-    });
-
-    const currentDateVersions = getCompatibleVersions({
-      widelyAvailableOnDate: currentDateString,
-      includeDownstreamBrowsers: true,
-      includeKaiOS: true,
-    });
+    const currentDateCoreVersions = getCoreVersionsByDate(
+      new Date(currentDateString),
+    );
+    const currentDateVersions = [
+      ...currentDateCoreVersions,
+      ...getDownstreamBrowsers(currentDateCoreVersions, false, true),
+    ];
 
     if (currentDateString.endsWith("-12-31")) {
       timeline[currentDateString] = currentDateVersions;
-    } else if (JSON.stringify(previousDateVersions) != JSON.stringify(currentDateVersions)) {
-      let changedBrowserVersions = getChangedBrowserVersions(previousDateVersions, currentDateVersions);
+    } else if (
+      JSON.stringify(previousDateVersions) !=
+      JSON.stringify(currentDateVersions)
+    ) {
+      let changedBrowserVersions = getChangedBrowserVersions(
+        previousDateVersions,
+        currentDateVersions,
+      );
       timeline[currentDateString] = changedBrowserVersions;
     }
 
     previousDateString = currentDateString;
     currentDateString = incrementDate(currentDateString);
-
   }
 
   const nameMappings: Record<string, string> = {
-    "chrome": "c",
-    "chrome_android": "ca",
-    "edge": "e",
-    "firefox": "f",
-    "firefox_android": "fa",
-    "safari": "s",
-    "safari_ios": "si",
-    "webview_android": "wva",
-    "samsunginternet_android": "sa",
-    "opera_android": "oa",
-    "opera": "o",
-    "kaios": "k",
-    "ya_android": "y",
-    "uc_android": "u",
-    "qq_android": "q",
-    "facebook_android": "fb",
-    "instagram_android": "ia",
-  }
+    chrome: "c",
+    chrome_android: "ca",
+    edge: "e",
+    firefox: "f",
+    firefox_android: "fa",
+    safari: "s",
+    safari_ios: "si",
+    webview_android: "wva",
+    samsunginternet_android: "sa",
+    opera_android: "oa",
+    opera: "o",
+    kai_os: "k",
+    ya_android: "y",
+    uc_android: "u",
+    qq_android: "q",
+    facebook_android: "fb",
+    instagram_android: "ia",
+  };
 
   const condensedTimeline: CondensedTimeline = {};
 
   Object.entries(timeline).forEach(([date, versions]) => {
-    condensedTimeline[date] = versions.map(version => {
-      return [
+    condensedTimeline[date] = versions.map((version) => {
+      const outputEntry: CondensedTimelineEntry = [
         nameMappings[version.browser],
         version.version,
-        version.release_date,
-      ] as CondensedTimelineEntry;
+        version.release_date ?? "u",
+      ];
+      if (version.engine_version) {
+        outputEntry.push(version.engine_version);
+      }
+      return outputEntry;
     });
   });
 
   return condensedTimeline;
+};
 
-}
+const timeline = createTimeline();
+let timelineString = ``;
+Object.entries(timeline).forEach(([changeDate, changes]) => {
+  timelineString += `${changeDate}\n`;
+  changes.forEach((change) => {
+    timelineString += `${change[0]},${change[1]},${change[2]}`;
+    if (change[3]) {
+      timelineString += `,${change[3]}`;
+    }
+    timelineString += `\n`;
+  });
+});
 
-writeFileSync("./src/data/timeline.json", JSON.stringify(createTimeline(), null, 2))
+const now = new Date().getTime();
+writeFileSync(
+  "./src/data/timeline.js",
+  `const timelineString = \`${timelineString}\`;const lastUpdated = ${now};export {timelineString, lastUpdated}`,
+);
