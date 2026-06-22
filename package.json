@@ -40,10 +40,9 @@
     "build": "rm -rf dist; npx prettier . --write; rollup -c; rm -rf ./dist/scripts/expose-data.d.ts ./dist/cli.d.ts",
     "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
-    "update-data-file": "npx tsx scripts/update-data-file.ts; npx prettier ./src/data/data.js --write",
+    "update-timeline": "npx tsx scripts/create-timeline.ts; npx prettier ./src/data/timeline.js --write",
     "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features@latest -D",
-    "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'",
-    "debug": "npx tsx scripts/debug.ts"
+    "check-timeline-changes": "git diff --name-only | grep -q '^src/data/timeline.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'"
   },
   "license": "Apache-2.0",
   "devDependencies": {
