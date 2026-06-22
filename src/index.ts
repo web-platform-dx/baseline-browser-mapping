@@ -4,8 +4,8 @@ import {
   lastUpdated,
   timelineString,
 } from "./data/timeline.js";
-import { compareVersions } from "./utils.js"
-import{
+import { compareVersions } from "./utils.js";
+import {
   BrowserVersion,
   Options,
   AllVersionsOptions,
@@ -157,7 +157,6 @@ const coreBrowsers = Object.entries(nameMappings)
   .map(([shortName, { longName }]) => {
     return { shortName: shortName, longName: longName };
   });
-
 
 type versionsObject = {
   [browser: string]: BrowserVersion;
