@@ -42,7 +42,8 @@
     "refresh-static": "npx tsx scripts/refresh-static.ts",
     "update-data-file": "npx tsx scripts/update-data-file.ts; npx prettier ./src/data/data.js --write",
     "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features@latest -D",
-    "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'"
+    "check-data-changes": "git diff --name-only | grep -q '^src/data/data.js$' && echo 'changes-available=TRUE' || echo 'changes-available=FALSE'",
+    "debug": "npx tsx scripts/debug.ts"
   },
   "license": "Apache-2.0",
   "devDependencies": {

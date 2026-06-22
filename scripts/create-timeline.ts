@@ -411,6 +411,26 @@ const getChangedBrowserVersions = (
   return changed;
 };
 
+const nameMappings: Record<string, string> = {
+  chrome: "c",
+  chrome_android: "ca",
+  edge: "e",
+  firefox: "f",
+  firefox_android: "fa",
+  safari: "s",
+  safari_ios: "si",
+  webview_android: "wva",
+  samsunginternet_android: "sa",
+  opera_android: "oa",
+  opera: "o",
+  kai_os: "k",
+  ya_android: "y",
+  uc_android: "u",
+  qq_android: "q",
+  facebook_android: "fb",
+  instagram_android: "ia",
+};
+
 const createTimeline = () => {
   const preBaselineVersions = getCoreVersionsByDate(
     new Date("2002-01-01"),
@@ -473,25 +493,7 @@ const createTimeline = () => {
     currentDateString = incrementDate(currentDateString);
   }
 
-  const nameMappings: Record<string, string> = {
-    chrome: "c",
-    chrome_android: "ca",
-    edge: "e",
-    firefox: "f",
-    firefox_android: "fa",
-    safari: "s",
-    safari_ios: "si",
-    webview_android: "wva",
-    samsunginternet_android: "sa",
-    opera_android: "oa",
-    opera: "o",
-    kai_os: "k",
-    ya_android: "y",
-    uc_android: "u",
-    qq_android: "q",
-    facebook_android: "fb",
-    instagram_android: "ia",
-  };
+  // nameMappings is now defined at the top level
 
   const condensedTimeline: CondensedTimeline = {};
 
@@ -511,15 +513,87 @@ const createTimeline = () => {
 
   return condensedTimeline;
 };
-
 const timeline = createTimeline();
 let timelineString = ``;
+const versionsInTimeline: Record<string, Set<string>> = {};
+
 Object.entries(timeline).forEach(([changeDate, changes]) => {
   timelineString += `${changeDate}\n`;
   changes.forEach((change) => {
+    const [shortName, version] = change;
+    if (!versionsInTimeline[shortName]) {
+      versionsInTimeline[shortName] = new Set();
+    }
+    versionsInTimeline[shortName].add(version);
+
     timelineString += `${change[0]},${change[1]},${change[2]}`;
     if (change[3]) {
       timelineString += `,${change[3]}`;
+    }
+    timelineString += `\n`;
+  });
+});
+
+const allReleases: Record<string, BrowserVersion[]> = {};
+
+// Core browsers
+coreBrowserData.forEach(([browserName, browserData]) => {
+  allReleases[browserName] = [];
+  const shortName = nameMappings[browserName] ?? browserName;
+  Object.entries(browserData.releases).forEach(([version, releaseData]) => {
+    if (acceptableStatuses.includes(releaseData.status)) {
+      if (!versionsInTimeline[shortName]?.has(version)) {
+        allReleases[browserName].push({
+          browser: browserName,
+          version: version,
+          release_date: releaseData.release_date ?? "u",
+        });
+      }
+    }
+  });
+  allReleases[browserName].sort((a, b) =>
+    compareVersions(a.version, b.version),
+  );
+});
+
+// Downstream browsers
+downstreamBrowserData.forEach(([browserName, browserData]) => {
+  if (!browserData.releases) return;
+  allReleases[browserName] = [];
+  const shortName = nameMappings[browserName] ?? browserName;
+  Object.entries(browserData.releases).forEach(([version, releaseData]) => {
+    const { status, engine, engine_version } = releaseData;
+    if (status && !acceptableStatuses.includes(status)) {
+      return;
+    }
+    if (
+      engine &&
+      engine_version &&
+      (engine === "Blink" || engine === "Gecko")
+    ) {
+      if (!versionsInTimeline[shortName]?.has(version)) {
+        allReleases[browserName].push({
+          browser: browserName,
+          version: version,
+          release_date: releaseData.release_date ?? "u",
+          engine: engine,
+          engine_version: engine_version,
+        });
+      }
+    }
+  });
+  allReleases[browserName].sort((a, b) =>
+    compareVersions(a.version, b.version),
+  );
+});
+
+timelineString += `releases\n`;
+Object.entries(allReleases).forEach(([browserName, versions]) => {
+  const shortName = nameMappings[browserName] ?? browserName;
+  versions.forEach((version) => {
+    timelineString += `${shortName},${version.version},${version.release_date}`;
+    if (version.engine_version) {
+      timelineString += `,${version.engine_version}`;
     }
     timelineString += `\n`;
   });

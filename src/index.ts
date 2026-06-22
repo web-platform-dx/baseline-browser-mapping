@@ -5,16 +5,90 @@ import {
   timelineString,
 } from "./data/timeline.js";
 
+const nameMappings: {
+  [shortName: string]: { longName: string; engine?: string };
+} = {
+  c: { longName: "chrome" },
+  ca: { longName: "chrome_android" },
+  e: { longName: "edge" },
+  f: { longName: "firefox" },
+  fa: { longName: "firefox_android" },
+  s: { longName: "safari" },
+  si: { longName: "safari_ios" },
+  o: { longName: "opera", engine: "Blink" },
+  oa: { longName: "opera_android", engine: "Blink" },
+  sa: { longName: "samsunginternet_android", engine: "Blink" },
+  wva: { longName: "webview_android", engine: "Blink" },
+  y: { longName: "ya_android", engine: "Blink" },
+  u: { longName: "uc_android", engine: "Blink" },
+  q: { longName: "qq_android", engine: "Blink" },
+  k: { longName: "kai_os", engine: "Gecko" },
+  fb: { longName: "facebook_android", engine: "Blink" },
+  ia: { longName: "instagram_android", engine: "Blink" },
+};
+
+const compareVersions = (
+  nextVersion: string,
+  prevVersion: string,
+): 1 | 0 | -1 => {
+  if (nextVersion === prevVersion) {
+    return 0;
+  }
+
+  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
+  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
+
+  if (isNaN(nextMajor) || isNaN(nextMinor)) {
+    throw new Error(`Invalid version: ${nextVersion}`);
+  }
+  if (isNaN(prevMajor) || isNaN(prevMinor)) {
+    throw new Error(`Invalid version: ${prevVersion}`);
+  }
+
+  if (nextMajor !== prevMajor) {
+    return nextMajor > prevMajor ? 1 : -1;
+  }
+  if (nextMinor !== prevMinor) {
+    return nextMinor > prevMinor ? 1 : -1;
+  }
+  return 0;
+};
+
 const timeline: CondensedTimeline = {};
+const allReleases: Record<string, CondensedTimelineEntry[]> = {};
 
 let changeDate = "";
+let parsingReleases = false;
 
 timelineString.split("\n").forEach((line) => {
+  line = line.trim();
   if (!line) {
     return;
   }
-  if (line.startsWith("20")) {
-    line = line.trim();
+  if (line === "releases") {
+    parsingReleases = true;
+    return;
+  }
+  if (parsingReleases) {
+    const parts = line.split(",");
+    if (parts.length >= 3) {
+      const [shortName, version, releaseDate, engineVersion] = parts;
+      const entry: CondensedTimelineEntry = [
+        shortName! as any,
+        version!,
+        releaseDate!.trim(),
+      ];
+      if (engineVersion) {
+        entry.push(engineVersion.trim());
+      }
+      if (!allReleases[shortName!]) {
+        allReleases[shortName!] = [];
+      }
+      allReleases[shortName!]!.push(entry);
+    }
+    return;
+  }
+  if (line.startsWith("20") || line.startsWith("pre_baseline")) {
     changeDate = line;
     timeline[changeDate] = [];
     return;
@@ -38,6 +112,28 @@ timelineString.split("\n").forEach((line) => {
       timeline[changeDate]!.push(entry);
     }
   }
+});
+
+const mergedReleases: Record<string, CondensedTimelineEntry[]> = {};
+
+// Reconstruct the full list of releases for each browser by merging the timeline and allReleases.
+Object.entries(nameMappings).forEach(([shortName]) => {
+  mergedReleases[shortName] = [...(allReleases[shortName] ?? [])];
+});
+
+Object.values(timeline).forEach((changeList) => {
+  changeList.forEach((change) => {
+    const shortName = change[0];
+    if (mergedReleases[shortName]) {
+      if (!mergedReleases[shortName].some((item) => item[1] === change[1])) {
+        mergedReleases[shortName].push(change);
+      }
+    }
+  });
+});
+
+Object.values(mergedReleases).forEach((list) => {
+  list.sort((a, b) => compareVersions(a[1], b[1]));
 });
 
 let hasWarned = false;
@@ -73,27 +169,7 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
   }
 };
 
-const nameMappings: {
-  [shortName: string]: { longName: string; engine?: string };
-} = {
-  c: { longName: "chrome" },
-  ca: { longName: "chrome_android" },
-  e: { longName: "edge" },
-  f: { longName: "firefox" },
-  fa: { longName: "firefox_android" },
-  s: { longName: "safari" },
-  si: { longName: "safari_ios" },
-  o: { longName: "opera", engine: "Blink" },
-  oa: { longName: "opera_android", engine: "Blink" },
-  sa: { longName: "samsunginternet_android", engine: "Blink" },
-  wva: { longName: "webview_android", engine: "Blink" },
-  y: { longName: "ya_android", engine: "Blink" },
-  u: { longName: "uc_android", engine: "Blink" },
-  q: { longName: "qq_android", engine: "Blink" },
-  k: { longName: "kai_os", engine: "Gecko" },
-  fb: { longName: "facebook_android", engine: "Blink" },
-  ia: { longName: "instagram_android", engine: "Blink" },
-};
+// nameMappings is now declared at the top of the file
 
 const coreBrowsers = Object.entries(nameMappings)
   .filter(([, { engine }]) => engine === undefined)
@@ -155,7 +231,7 @@ const reconstructBrowserVersion = (
   const browserVersion: BrowserVersion = {
     browser: longName,
     version: version,
-    release_date: releaseDate,
+    release_date: releaseDate === "u" ? "unknown" : releaseDate,
   };
   if (engineVersion) {
     browserVersion.engine_version = engineVersion;
@@ -164,32 +240,7 @@ const reconstructBrowserVersion = (
   return browserVersion;
 };
 
-const compareVersions = (
-  nextVersion: string,
-  prevVersion: string,
-): 1 | 0 | -1 => {
-  if (nextVersion === prevVersion) {
-    return 0;
-  }
-
-  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
-  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
-
-  if (isNaN(nextMajor) || isNaN(nextMinor)) {
-    throw new Error(`Invalid version: ${nextVersion}`);
-  }
-  if (isNaN(prevMajor) || isNaN(prevMinor)) {
-    throw new Error(`Invalid version: ${prevVersion}`);
-  }
-
-  if (nextMajor !== prevMajor) {
-    return nextMajor > prevMajor ? 1 : -1;
-  }
-  if (nextMinor !== prevMinor) {
-    return nextMinor > prevMinor ? 1 : -1;
-  }
-  return 0;
-};
+// compareVersions is now declared at the top of the file
 
 type Options = {
   /**
@@ -297,83 +348,118 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     }
   }
 
-  let condensedBrowserVersions: CondensedTimelineEntry[] = [];
+  const isPre2015 = targetDate < new Date("2015-07-29");
 
+  // Find the active minimum version of each browser at targetDate.
+  const minVersions: Record<string, CondensedTimelineEntry | undefined> = {};
   Object.entries(nameMappings).forEach(([shortName]) => {
-    const reducedTimeline = Object.entries(timeline).reduce<
-      Record<string, CondensedTimelineEntry | undefined>
-    >((output, [changeDate, changeList]) => {
-      const match = changeList.find((change) => change[0] === shortName);
-      if (match) {
-        output[changeDate] = match;
-      }
-      return output;
-    }, {});
+    minVersions[shortName] = undefined;
+  });
 
-    if (Object.keys(reducedTimeline).length === 0) {
+  Object.entries(timeline).forEach(([changeDate, changeList]) => {
+    let isBeforeOrAt = false;
+    if (changeDate === "pre_baseline") {
+      isBeforeOrAt = true;
+    } else {
+      isBeforeOrAt = new Date(changeDate) <= targetDate;
+    }
+
+    if (isBeforeOrAt) {
+      changeList.forEach((change) => {
+        const shortName = change[0];
+        if (changeDate !== "pre_baseline") {
+          minVersions[shortName] = change;
+        }
+      });
+    }
+  });
+
+  const result: BrowserVersion[] = [];
+
+  Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+    if (!options.includeKaiOS && shortName === "k") {
+      return;
+    }
+    const isCore = coreBrowsers.some((b) => b.shortName === shortName);
+    if (!options.includeDownstreamBrowsers && !isCore) {
       return;
     }
 
-    const afterChangeIndex = Object.keys(reducedTimeline).findIndex(
-      (changeDate) => new Date(changeDate) > targetDate,
-    );
-
-    const beforeChangeDate =
-      Object.keys(reducedTimeline)[afterChangeIndex - 1] ?? "2015-07-29";
-
-    if (
-      options.listAllCompatibleVersions &&
-      reducedTimeline[beforeChangeDate]
-    ) {
-      const beforeChangeIndex =
-        Object.keys(reducedTimeline).indexOf(beforeChangeDate);
-
-      if (beforeChangeIndex !== -1) {
-        const entries = Object.values(reducedTimeline)
-          .slice(beforeChangeIndex)
-          .filter(
-            (entry): entry is CondensedTimelineEntry => entry !== undefined,
+    if (isPre2015) {
+      if (!options.listAllCompatibleVersions) {
+        result.push({
+          browser: longName,
+          version: "0",
+          release_date: "",
+        });
+      } else {
+        result.push({
+          browser: longName,
+          version: "0",
+          release_date: "",
+        });
+        const releases = mergedReleases[shortName] ?? [];
+        releases.forEach((release) => {
+          result.push(
+            reconstructBrowserVersion(
+              shortName,
+              longName,
+              release[1],
+              release[2],
+              release[3],
+            ),
           );
-        condensedBrowserVersions.push(...entries);
+        });
       }
     } else {
-      const entry = reducedTimeline[beforeChangeDate];
-      if (entry) {
-        condensedBrowserVersions.push(entry);
+      const minVersionEntry = minVersions[shortName];
+      if (!minVersionEntry) {
+        return;
+      }
+
+      const minVersion = minVersionEntry[1];
+
+      if (!options.listAllCompatibleVersions) {
+        result.push(
+          reconstructBrowserVersion(
+            shortName,
+            longName,
+            minVersion,
+            minVersionEntry[2],
+            minVersionEntry[3],
+          ),
+        );
+      } else {
+        const releases = mergedReleases[shortName] ?? [];
+        releases.forEach((release) => {
+          const version = release[1];
+          if (compareVersions(version, minVersion) >= 0) {
+            result.push(
+              reconstructBrowserVersion(
+                shortName,
+                longName,
+                version,
+                release[2],
+                release[3],
+              ),
+            );
+          }
+        });
       }
     }
   });
 
-  let browsers: BrowserVersion[] = condensedBrowserVersions
-    .filter(([shortName]) => {
-      if (!options.includeKaiOS && shortName === "k") {
-        return false;
-      }
-      if (
-        !options.includeDownstreamBrowsers &&
-        coreBrowsers.map((b) => b.shortName).indexOf(shortName) === -1
-      ) {
-        return false;
-      }
-      return true;
-    })
-    .map(([shortName, version, releaseDate, engineVersion]) => {
-      const longName = nameMappings[shortName]
-        ? nameMappings[shortName].longName
-        : shortName;
+  result.sort((a, b) => {
+    if (a.browser < b.browser) {
+      return -1;
+    } else if (a.browser > b.browser) {
+      return 1;
+    } else {
+      return compareVersions(a.version, b.version);
+    }
+  });
 
-      let browserVersion = reconstructBrowserVersion(
-        shortName,
-        longName,
-        version,
-        releaseDate,
-        engineVersion,
-      );
-
-      return browserVersion;
-    });
-
-  return browsers as BrowserVersion[];
+  return result;
 }
 
 type AllVersionsOptions = {
@@ -433,7 +519,7 @@ export function getAllVersions(
 
   let nextYear = new Date().getFullYear() + 1;
 
-  const yearArray = [...Array(nextYear).keys()].slice(2002);
+  const yearArray = [...Array(nextYear).keys()].slice(2015);
   const yearMinimumVersions: YearVersions = {};
   yearArray.forEach((year: number) => {
     yearMinimumVersions[year] = {};
@@ -446,6 +532,8 @@ export function getAllVersions(
     });
   });
 
+  console.log("yearMinimumVersions", yearMinimumVersions);
+
   const waMinimumVersions = getCompatibleVersions({
     suppressWarnings: options.suppressWarnings,
   });
@@ -453,6 +541,8 @@ export function getAllVersions(
   waMinimumVersions.forEach((version: BrowserVersion) => {
     waObject[version.browser] = version;
   });
+
+  console.log("waMinimumVersions", waMinimumVersions);
 
   const thirtyMonthsFromToday = new Date();
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
@@ -466,11 +556,15 @@ export function getAllVersions(
     naObject[version.browser] = version;
   });
 
+  console.log("naMinimumVersions", naMinimumVersions);
+
   const allVersions = getCompatibleVersions({
     targetYear: 2002,
     listAllCompatibleVersions: true,
     suppressWarnings: options.suppressWarnings,
   });
+
+  // console.log("allVersions", allVersions);
 
   const outputArray: AllBrowsersBrowserVersion[] = [];
 
@@ -538,6 +632,7 @@ export function getAllVersions(
 
   if (options.includeDownstreamBrowsers) {
     let downstreamBrowsers = getCompatibleVersions({
+      targetYear: 2002,
       listAllCompatibleVersions: true,
       includeDownstreamBrowsers: true,
       includeKaiOS: options.includeKaiOS,
