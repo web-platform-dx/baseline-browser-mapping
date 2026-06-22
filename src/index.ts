@@ -427,8 +427,6 @@ export function getAllVersions(
     });
   });
 
-  console.log("yearMinimumVersions", yearMinimumVersions);
-
   const waMinimumVersions = getCompatibleVersions({
     suppressWarnings: options.suppressWarnings,
   });
@@ -436,8 +434,6 @@ export function getAllVersions(
   waMinimumVersions.forEach((version: BrowserVersion) => {
     waObject[version.browser] = version;
   });
-
-  console.log("waMinimumVersions", waMinimumVersions);
 
   const thirtyMonthsFromToday = new Date();
   thirtyMonthsFromToday.setMonth(thirtyMonthsFromToday.getMonth() + 30);
@@ -451,15 +447,11 @@ export function getAllVersions(
     naObject[version.browser] = version;
   });
 
-  console.log("naMinimumVersions", naMinimumVersions);
-
   const allVersions = getCompatibleVersions({
     targetYear: 2002,
     listAllCompatibleVersions: true,
     suppressWarnings: options.suppressWarnings,
   });
-
-  // console.log("allVersions", allVersions);
 
   const outputArray: AllBrowsersBrowserVersion[] = [];
 
