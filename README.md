@@ -409,7 +409,7 @@ These files are updated on a daily basis.
 
 ## Get timeline of browser version compatibility bumps
 
-To calculate compatible browser versions on custom/arbitrary dates completely client-side without loading the full `@mdn/browser-compat-data` database, you can call the `getTimeline()` function. It returns the timeline of minimum version requirements for each core browser:
+To calculate compatible browser versions on custom/arbitrary dates completely client-side without loading the full `@mdn/browser-compat-data` database, you can call the `getTimeline()` function. It returns the timeline of minimum version requirements as a chronologically sorted array of change events:
 
 ```javascript
 import { getTimeline } from "baseline-browser-mapping";
@@ -417,24 +417,71 @@ import { getTimeline } from "baseline-browser-mapping";
 const timeline = getTimeline();
 ```
 
-It returns an `Object` with arrays of transition events for each core browser:
+It returns an `Array` of events, where each event has a `date` and an array of `browsers` representing the compatibility changes on that date:
 
 ```javascript
-{
-  chrome: [
-    { date: "2015-07-29", version: "44" },
-    { date: "2016-03-02", version: "49" },
-    ...
-  ],
-  safari: [
-    { date: "2015-09-30", version: "9" },
-    ...
-  ],
+[
+  {
+    date: "2015-07-29",
+    browsers: [
+      { browser: "chrome", version: "38", release_date: "2014-10-07" },
+      { browser: "chrome_android", version: "38", release_date: "2014-10-08" },
+      { browser: "edge", version: "12", release_date: "2015-07-29" },
+      { browser: "firefox", version: "38", release_date: "2015-05-12" },
+      { browser: "firefox_android", version: "38", release_date: "2015-05-12" },
+      { browser: "safari", version: "11", release_date: "2017-09-19" },
+      { browser: "safari_ios", version: "11", release_date: "2017-09-19" }
+    ]
+  },
+  {
+    date: "2015-09-22",
+    browsers: [
+      { browser: "firefox", version: "41", release_date: "2015-09-22" },
+      { browser: "firefox_android", version: "41", release_date: "2015-09-22" }
+    ]
+  },
   ...
-}
+]
 ```
 
-Whenever a new web platform feature becomes Baseline-low, if it requires a higher version than the current minimum required version of a core browser, a transition event is added to the timeline with the date the feature became Baseline-low and the new required version.
+### Options
+
+`getTimeline()` accepts an optional configuration `Object` with the following properties:
+
+- `groupBy` (`"date"` by default):
+  - If `"date"` (default), it returns a chronologically sorted `Array` of events, where each event represents a date on which a browser's Baseline requirements changed.
+  - If `"browser"`, it returns an `Object` where keys are browser names and values are arrays of version change events for that specific browser:
+    ```javascript
+    {
+      chrome: [
+        { date: "2015-07-29", version: "38", release_date: "2014-10-07" },
+        { date: "2016-03-02", version: "49", release_date: "2016-03-02" },
+        ...
+      ],
+      safari: [
+        { date: "2015-09-30", version: "9", release_date: "2015-09-30" },
+        ...
+      ],
+      ...
+    }
+    ```
+- `listAllBrowsers` (`false` by default):
+  - If `false`, the `browsers` array for each event (when `groupBy` is `"date"`) contains _only_ the browsers that changed on that specific date.
+  - If `true`, the `browsers` array for each event will contain the state of _all_ active compatible browsers at that point in time (showing the versions they had on that date).
+  - _Note: Only applicable when `groupBy` is `"date"` (or when `groupBy` is `"browser"`, this lists every date in the timeline for each browser)._
+- `includeDownstreamBrowsers` (`false` by default): Whether to include downstream browsers that share the same engine as a core browser.
+- `includeKaiOS` (`false` by default): Whether to include KaiOS (requires `includeDownstreamBrowsers: true`).
+
+```javascript
+// Get a complete view of all core browsers at every timeline event
+const fullTimeline = getTimeline({ listAllBrowsers: true });
+
+// Get the timeline grouped by browser instead of by date
+const browserTimeline = getTimeline({ groupBy: "browser" });
+
+// Include downstream browsers in the timeline of changes
+const downstreamTimeline = getTimeline({ includeDownstreamBrowsers: true });
+```
 
 ## CLI
 

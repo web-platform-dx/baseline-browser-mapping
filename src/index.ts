@@ -11,6 +11,9 @@ import {
   AllVersionsOptions,
   AllBrowsersBrowserVersion,
   NestedBrowserVersions,
+  TimelineOptions,
+  TimelineEvent,
+  BrowserTimeline,
 } from "./types.js";
 
 const nameMappings: {
@@ -661,4 +664,132 @@ export function getAllVersions(
   }
 
   return outputArray;
+}
+
+export function getTimeline(
+  userOptions?: TimelineOptions & { groupBy?: "date" },
+): TimelineEvent[];
+export function getTimeline(
+  userOptions: TimelineOptions & { groupBy: "browser" },
+): BrowserTimeline;
+export function getTimeline(
+  userOptions?: TimelineOptions,
+): TimelineEvent[] | BrowserTimeline {
+  const incomingOptions = userOptions ?? {};
+  const options = {
+    groupBy: incomingOptions.groupBy ?? "date",
+    listAllBrowsers: incomingOptions.listAllBrowsers ?? false,
+    includeDownstreamBrowsers:
+      incomingOptions.includeDownstreamBrowsers ?? false,
+    includeKaiOS: incomingOptions.includeKaiOS ?? false,
+  };
+
+  if (
+    options.includeDownstreamBrowsers === false &&
+    options.includeKaiOS === true
+  ) {
+    throw new Error(
+      "KaiOS is a downstream browser and can only be included if you include other downstream browsers. Please ensure you use `includeDownstreamBrowsers: true`.",
+    );
+  }
+
+  const currentMinVersions: Record<string, CondensedTimelineEntry> = {};
+  const result: TimelineEvent[] = [];
+
+  Object.entries(timeline).forEach(([changeDate, changeList]) => {
+    if (changeDate === "pre_baseline") {
+      return;
+    }
+
+    const bumpedBrowsers = new Set<string>();
+
+    changeList.forEach((change) => {
+      const shortName = change[0];
+      const previousEntry = currentMinVersions[shortName];
+      const newVersion = change[1];
+
+      if (!previousEntry || previousEntry[1] !== newVersion) {
+        bumpedBrowsers.add(shortName);
+      }
+
+      currentMinVersions[shortName] = change;
+    });
+
+    const activeBrowsers: BrowserVersion[] = [];
+
+    Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+      if (!options.includeKaiOS && shortName === "k") {
+        return;
+      }
+      const isCore = coreBrowsers.some((b) => b.shortName === shortName);
+      if (!options.includeDownstreamBrowsers && !isCore) {
+        return;
+      }
+
+      const hasChanged = bumpedBrowsers.has(shortName);
+
+      if (options.listAllBrowsers || hasChanged) {
+        const minVersionEntry = currentMinVersions[shortName];
+        if (minVersionEntry) {
+          activeBrowsers.push(
+            reconstructBrowserVersion(
+              shortName,
+              longName,
+              minVersionEntry[1],
+              minVersionEntry[2],
+              minVersionEntry[3],
+            ),
+          );
+        }
+      }
+    });
+
+    if (activeBrowsers.length > 0) {
+      activeBrowsers.sort((a, b) => {
+        if (a.browser < b.browser) {
+          return -1;
+        } else if (a.browser > b.browser) {
+          return 1;
+        } else {
+          return compareVersions(a.version, b.version);
+        }
+      });
+
+      result.push({
+        date: changeDate,
+        browsers: activeBrowsers,
+      });
+    }
+  });
+
+  if (options.groupBy === "browser") {
+    const browserTimeline: BrowserTimeline = {};
+
+    Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+      if (!options.includeKaiOS && shortName === "k") {
+        return;
+      }
+      const isCore = coreBrowsers.some((b) => b.shortName === shortName);
+      if (!options.includeDownstreamBrowsers && !isCore) {
+        return;
+      }
+      browserTimeline[longName] = [];
+    });
+
+    result.forEach((event) => {
+      event.browsers.forEach((browser) => {
+        const { browser: name, ...rest } = browser;
+        if (browserTimeline[name]) {
+          browserTimeline[name]!.push({
+            date: event.date,
+            ...rest,
+          });
+        }
+      });
+    });
+
+    return browserTimeline;
+  }
+
+  return result;
 }

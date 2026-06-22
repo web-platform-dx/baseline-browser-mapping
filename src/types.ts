@@ -84,3 +84,46 @@ export type NestedBrowserVersions = {
     [version: string]: AllBrowsersBrowserVersion;
   };
 };
+
+export type TimelineOptions = {
+  /**
+   * Whether to return the timeline as a chronologically sorted array of events grouped by date ("date"),
+   * or as an object grouped by browser with their respective history of version changes ("browser").
+   * Defaults to "date".
+   */
+  groupBy?: "date" | "browser";
+  /**
+   * Whether to include all compatible browsers in each timeline event,
+   * or only the browsers that changed on that date.
+   * Only applicable when groupBy is "date".
+   * Defaults to `false`.
+   */
+  listAllBrowsers?: boolean;
+  /**
+   * Whether to include browsers that use the same engines as a core Baseline browser.
+   * Defaults to `false`.
+   */
+  includeDownstreamBrowsers?: boolean;
+  /**
+   * Whether to include KaiOS in the timeline.
+   * Defaults to `false`.
+   */
+  includeKaiOS?: boolean;
+};
+
+export type TimelineEvent = {
+  date: string;
+  browsers: BrowserVersion[];
+};
+
+export type BrowserTimelineEntry = {
+  date: string;
+  version: string;
+  release_date?: string;
+  engine?: string;
+  engine_version?: string;
+};
+
+export type BrowserTimeline = {
+  [browser: string]: BrowserTimelineEntry[];
+};
