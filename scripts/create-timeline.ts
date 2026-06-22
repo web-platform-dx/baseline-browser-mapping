@@ -2,6 +2,15 @@ import { features as featuresObject } from "web-features";
 import bcd from "@mdn/browser-compat-data";
 import downstreamBrowsers from "../src/data/downstream-browsers.json" with { type: "json" };
 import { writeFileSync } from "fs";
+import { compareVersions } from "../src/utils.js";
+import { BrowserVersion } from "../src/types.js";
+
+const normalizeReleaseDate = (date?: string | null): string => {
+  if (!date || date === "unknown" || date === "u") {
+    return "u";
+  }
+  return date;
+};
 
 const bcdBrowsers = bcd.browsers as BrowserData;
 const otherBrowsers = downstreamBrowsers.browsers as BrowserData;
@@ -42,13 +51,7 @@ type BrowserData = {
   [key: string]: Browser;
 };
 
-type BrowserVersion = {
-  browser: string;
-  version: string;
-  release_date?: string;
-  engine?: string;
-  engine_version?: string;
-};
+// BrowserVersion is now imported from utils.ts
 
 type RawFeature = {
   kind: "feature";
@@ -103,33 +106,6 @@ const stripLTEPrefix = (str: string): string => {
     return str;
   }
   return str.slice(1);
-};
-
-const compareVersions = (
-  nextVersion: string,
-  prevVersion: string,
-): 1 | 0 | -1 => {
-  if (nextVersion === prevVersion) {
-    return 0;
-  }
-
-  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
-  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
-
-  if (isNaN(nextMajor) || isNaN(nextMinor)) {
-    throw new Error(`Invalid version: ${nextVersion}`);
-  }
-  if (isNaN(prevMajor) || isNaN(prevMinor)) {
-    throw new Error(`Invalid version: ${prevVersion}`);
-  }
-
-  if (nextMajor !== prevMajor) {
-    return nextMajor > prevMajor ? 1 : -1;
-  }
-  if (nextMinor !== prevMinor) {
-    return nextMinor > prevMinor ? 1 : -1;
-  }
-  return 0;
 };
 
 const getCompatibleFeaturesByDate = (date: Date): Feature[] => {
@@ -502,7 +478,7 @@ const createTimeline = () => {
       const outputEntry: CondensedTimelineEntry = [
         nameMappings[version.browser],
         version.version,
-        version.release_date ?? "u",
+        normalizeReleaseDate(version.release_date),
       ];
       if (version.engine_version) {
         outputEntry.push(version.engine_version);
@@ -546,7 +522,7 @@ coreBrowserData.forEach(([browserName, browserData]) => {
         allReleases[browserName].push({
           browser: browserName,
           version: version,
-          release_date: releaseData.release_date ?? "u",
+          release_date: normalizeReleaseDate(releaseData.release_date),
         });
       }
     }
@@ -575,7 +551,7 @@ downstreamBrowserData.forEach(([browserName, browserData]) => {
         allReleases[browserName].push({
           browser: browserName,
           version: version,
-          release_date: releaseData.release_date ?? "u",
+          release_date: normalizeReleaseDate(releaseData.release_date),
           engine: engine,
           engine_version: engine_version,
         });

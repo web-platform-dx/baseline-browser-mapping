@@ -4,6 +4,14 @@ import {
   lastUpdated,
   timelineString,
 } from "./data/timeline.js";
+import { compareVersions } from "./utils.js"
+import{
+  BrowserVersion,
+  Options,
+  AllVersionsOptions,
+  AllBrowsersBrowserVersion,
+  NestedBrowserVersions,
+} from "./types.js";
 
 const nameMappings: {
   [shortName: string]: { longName: string; engine?: string };
@@ -25,33 +33,6 @@ const nameMappings: {
   k: { longName: "kai_os", engine: "Gecko" },
   fb: { longName: "facebook_android", engine: "Blink" },
   ia: { longName: "instagram_android", engine: "Blink" },
-};
-
-const compareVersions = (
-  nextVersion: string,
-  prevVersion: string,
-): 1 | 0 | -1 => {
-  if (nextVersion === prevVersion) {
-    return 0;
-  }
-
-  const [nextMajor = 0, nextMinor = 0] = nextVersion.split(".", 2).map(Number);
-  const [prevMajor = 0, prevMinor = 0] = prevVersion.split(".", 2).map(Number);
-
-  if (isNaN(nextMajor) || isNaN(nextMinor)) {
-    throw new Error(`Invalid version: ${nextVersion}`);
-  }
-  if (isNaN(prevMajor) || isNaN(prevMinor)) {
-    throw new Error(`Invalid version: ${prevVersion}`);
-  }
-
-  if (nextMajor !== prevMajor) {
-    return nextMajor > prevMajor ? 1 : -1;
-  }
-  if (nextMinor !== prevMinor) {
-    return nextMinor > prevMinor ? 1 : -1;
-  }
-  return 0;
 };
 
 const timeline: CondensedTimeline = {};
@@ -177,25 +158,6 @@ const coreBrowsers = Object.entries(nameMappings)
     return { shortName: shortName, longName: longName };
   });
 
-type BrowserVersion = {
-  browser: string;
-  version: string;
-  release_date?: string;
-  engine?: string;
-  engine_version?: string;
-};
-
-type NestedBrowserVersions = {
-  [browser: string]: {
-    [version: string]: AllBrowsersBrowserVersion;
-  };
-};
-
-interface AllBrowsersBrowserVersion extends BrowserVersion {
-  year: number | string;
-  supports?: string;
-  wa_compatible?: boolean;
-}
 
 type versionsObject = {
   [browser: string]: BrowserVersion;
@@ -238,46 +200,6 @@ const reconstructBrowserVersion = (
     browserVersion.engine = nameMappings[shortName]?.engine;
   }
   return browserVersion;
-};
-
-// compareVersions is now declared at the top of the file
-
-type Options = {
-  /**
-   * Whether to include only the minimum compatible browser versions or all compatible versions.
-   * Defaults to `false`.
-   */
-  listAllCompatibleVersions?: boolean;
-  /**
-   * Whether to include browsers that use the same engines as a core Baseline browser.
-   * Defaults to `false`.
-   */
-  includeDownstreamBrowsers?: boolean;
-  /**
-   * Pass a date in the format 'YYYY-MM-DD' to get versions compatible with Widely available on the specified date.
-   * If left undefined and a `targetYear` is not passed, defaults to Widely available as of the current date.
-   * > NOTE: cannot be used with `targetYear`.
-   */
-  widelyAvailableOnDate?: string | number;
-  /**
-   * Pass a year between 2015 and the current year to get browser versions compatible with all
-   * Newly Available features as of the end of the year specified.
-   * > NOTE: cannot be used with `widelyAvailableOnDate`.
-   */
-  targetYear?: number;
-  /**
-   * Pass a boolean that determines whether KaiOS is included in browser mappings.  KaiOS implements
-   * the Gecko engine used in Firefox.  However, KaiOS also has a different interaction paradigm to
-   * other browsers and requires extra consideration beyond simple feature compatibility to provide
-   * an optimal user experience.  Defaults to `false`.
-   */
-  includeKaiOS?: boolean;
-  overrideLastUpdated?: number;
-  /**
-   * Pass a boolean to suppress the warning about stale data.
-   * Defaults to `false`.
-   */
-  suppressWarnings?: boolean;
 };
 
 /**
@@ -461,35 +383,6 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
   return result;
 }
-
-type AllVersionsOptions = {
-  /**
-   * Whether to return the output as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
-   * Defaults to `"array"`.
-   */
-  outputFormat?: string;
-  /**
-   * Whether to include browsers that use the same engines as a core Baseline browser.
-   * Defaults to `false`.
-   */
-  includeDownstreamBrowsers?: boolean;
-  /**
-   * Whether to use the new "supports" property in place of "wa_compatible"
-   * Defaults to `false`
-   */
-  useSupports?: boolean;
-  /**
-   * Whether to include KaiOS in the output. KaiOS implements the Gecko engine used in Firefox.
-   * However, KaiOS also has a different interaction paradigm to other browsers and requires extra
-   * consideration beyond simple feature compatibility to provide an optimal user experience.
-   */
-  includeKaiOS?: boolean;
-  /**
-   * Pass a boolean to suppress the warning about old data.
-   * Defaults to `false`.
-   */
-  suppressWarnings?: boolean;
-};
 
 /**
  * Returns all browser versions known to this module with their level of Baseline support as a JavaScript `Array` (`"array"`), `Object` (`"object"`) or a CSV string (`"csv"`).
