@@ -9,6 +9,9 @@ const normalizeReleaseDate = (date?: string | null): string => {
   if (!date || date === "unknown" || date === "u") {
     return "u";
   }
+  if (date.startsWith("20")) {
+    return date.slice(2);
+  }
   return date;
 };
 

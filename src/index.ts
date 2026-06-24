@@ -38,6 +38,13 @@ const nameMappings: {
   ia: { longName: "instagram_android", engine: "Blink" },
 };
 
+const expandReleaseDate = (date: string): string => {
+  if (date.length === 8 && /^\d{2}-\d{2}-\d{2}$/.test(date)) {
+    return "20" + date;
+  }
+  return date;
+};
+
 const timeline: CondensedTimeline = {};
 const allReleases: Record<string, CondensedTimelineEntry[]> = {};
 
@@ -60,7 +67,7 @@ timelineString.split("\n").forEach((line) => {
       const entry: CondensedTimelineEntry = [
         shortName! as any,
         version!,
-        releaseDate!.trim(),
+        expandReleaseDate(releaseDate!.trim()),
       ];
       if (engineVersion) {
         entry.push(engineVersion.trim());
@@ -83,7 +90,7 @@ timelineString.split("\n").forEach((line) => {
       const entry: CondensedTimelineEntry = [
         shortName! as any,
         version!,
-        releaseDate!.trim(),
+        expandReleaseDate(releaseDate!.trim()),
       ];
       if (engineVersion) {
         entry.push(engineVersion.trim());
@@ -101,11 +108,12 @@ timelineString.split("\n").forEach((line) => {
 const mergedReleases: Record<string, CondensedTimelineEntry[]> = {};
 
 // Reconstruct the full list of releases for each browser by merging the timeline and allReleases.
-Object.entries(nameMappings).forEach(([shortName]) => {
+Object.keys(nameMappings).forEach((shortName) => {
   mergedReleases[shortName] = [...(allReleases[shortName] ?? [])];
 });
 
-Object.values(timeline).forEach((changeList) => {
+Object.keys(timeline).forEach((changeDate) => {
+  const changeList = timeline[changeDate]!;
   changeList.forEach((change) => {
     const shortName = change[0];
     if (mergedReleases[shortName]) {
@@ -116,7 +124,8 @@ Object.values(timeline).forEach((changeList) => {
   });
 });
 
-Object.values(mergedReleases).forEach((list) => {
+Object.keys(mergedReleases).forEach((shortName) => {
+  const list = mergedReleases[shortName]!;
   list.sort((a, b) => compareVersions(a[1], b[1]));
 });
 
@@ -155,9 +164,10 @@ const checkUpdate = (targetDate: Date, lastUpdatedOverride?: number) => {
 
 // nameMappings is now declared at the top of the file
 
-const coreBrowsers = Object.entries(nameMappings)
-  .filter(([, { engine }]) => engine === undefined)
-  .map(([shortName, { longName }]) => {
+const coreBrowsers = Object.keys(nameMappings)
+  .filter((shortName) => nameMappings[shortName]!.engine === undefined)
+  .map((shortName) => {
+    const { longName } = nameMappings[shortName]!;
     return { shortName: shortName, longName: longName };
   });
 
@@ -276,11 +286,12 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
   // Find the active minimum version of each browser at targetDate.
   const minVersions: Record<string, CondensedTimelineEntry | undefined> = {};
-  Object.entries(nameMappings).forEach(([shortName]) => {
+  Object.keys(nameMappings).forEach((shortName) => {
     minVersions[shortName] = undefined;
   });
 
-  Object.entries(timeline).forEach(([changeDate, changeList]) => {
+  Object.keys(timeline).forEach((changeDate) => {
+    const changeList = timeline[changeDate]!;
     let isBeforeOrAt = false;
     if (changeDate === "pre_baseline") {
       isBeforeOrAt = true;
@@ -300,7 +311,8 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
   const result: BrowserVersion[] = [];
 
-  Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+  Object.keys(nameMappings).forEach((shortName) => {
+    const { longName } = nameMappings[shortName]!;
     if (!options.includeKaiOS && shortName === "k") {
       return;
     }
@@ -688,7 +700,8 @@ export function getTimeline(
   const currentMinVersions: Record<string, CondensedTimelineEntry> = {};
   const result: TimelineEvent[] = [];
 
-  Object.entries(timeline).forEach(([changeDate, changeList]) => {
+  Object.keys(timeline).forEach((changeDate) => {
+    const changeList = timeline[changeDate]!;
     if (changeDate === "pre_baseline") {
       return;
     }
@@ -709,7 +722,8 @@ export function getTimeline(
 
     const activeBrowsers: BrowserVersion[] = [];
 
-    Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+    Object.keys(nameMappings).forEach((shortName) => {
+      const { longName } = nameMappings[shortName]!;
       if (!options.includeKaiOS && shortName === "k") {
         return;
       }
@@ -757,7 +771,8 @@ export function getTimeline(
   if (options.groupBy === "browser") {
     const browserTimeline: BrowserTimeline = {};
 
-    Object.entries(nameMappings).forEach(([shortName, { longName }]) => {
+    Object.keys(nameMappings).forEach((shortName) => {
+      const { longName } = nameMappings[shortName]!;
       if (!options.includeKaiOS && shortName === "k") {
         return;
       }
