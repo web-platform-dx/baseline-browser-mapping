@@ -9,10 +9,11 @@ const normalizeReleaseDate = (date?: string | null): string => {
   if (!date || date === "unknown" || date === "u") {
     return "u";
   }
+  let normalized = date;
   if (date.startsWith("20")) {
-    return date.slice(2);
+    normalized = date.slice(2);
   }
-  return date;
+  return normalized.replace(/-/g, "");
 };
 
 const bcdBrowsers = bcd.browsers as BrowserData;
@@ -497,7 +498,7 @@ let timelineString = ``;
 const versionsInTimeline: Record<string, Set<string>> = {};
 
 Object.entries(timeline).forEach(([changeDate, changes]) => {
-  timelineString += `${changeDate}\n`;
+  timelineString += `${changeDate.replace(/-/g, "")}\n`;
   changes.forEach((change) => {
     const [shortName, version] = change;
     if (!versionsInTimeline[shortName]) {

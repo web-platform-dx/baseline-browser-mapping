@@ -39,8 +39,13 @@ const nameMappings: {
 };
 
 const expandReleaseDate = (date: string): string => {
-  if (date.length === 8 && /^\d{2}-\d{2}-\d{2}$/.test(date)) {
-    return "20" + date;
+  // If it's a 6-digit date YYMMDD (like 240512), expand to 20YY-MM-DD
+  if (date.length === 6 && /^\d{6}$/.test(date)) {
+    return `20${date.slice(0, 2)}-${date.slice(2, 4)}-${date.slice(4, 6)}`;
+  }
+  // If it's an 8-digit date YYYYMMDD (like 19991012), expand to YYYY-MM-DD
+  if (date.length === 8 && /^\d{8}$/.test(date)) {
+    return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
   }
   return date;
 };
@@ -80,7 +85,7 @@ timelineString.split("\n").forEach((line) => {
     return;
   }
   if (line.startsWith("20") || line.startsWith("pre_baseline")) {
-    changeDate = line;
+    changeDate = expandReleaseDate(line);
     timeline[changeDate] = [];
     return;
   } else {
