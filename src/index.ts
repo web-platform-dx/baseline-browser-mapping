@@ -581,23 +581,25 @@ export function getAllVersions(
     );
 
     downstreamBrowsers.forEach((version: BrowserVersion) => {
-      let correspondingChromiumVersion = outputArray.find(
+      const targetUpstreamBrowser =
+        version.engine === "Gecko" ? "firefox" : "chrome";
+      let correspondingUpstreamVersion = outputArray.find(
         (upstreamVersion) =>
-          upstreamVersion.browser === "chrome" &&
+          upstreamVersion.browser === targetUpstreamBrowser &&
           upstreamVersion.version === version.engine_version,
       );
-      if (correspondingChromiumVersion) {
+      if (correspondingUpstreamVersion) {
         if (options.useSupports) {
           outputArray.push({
             ...version,
-            year: correspondingChromiumVersion.year,
-            supports: correspondingChromiumVersion.supports,
+            year: correspondingUpstreamVersion.year,
+            supports: correspondingUpstreamVersion.supports,
           });
         } else {
           outputArray.push({
             ...version,
-            year: correspondingChromiumVersion.year,
-            wa_compatible: correspondingChromiumVersion.wa_compatible,
+            year: correspondingUpstreamVersion.year,
+            wa_compatible: correspondingUpstreamVersion.wa_compatible,
           });
         }
       }

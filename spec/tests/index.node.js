@@ -165,6 +165,18 @@ describe("getAllVersions default", () => {
       true,
     );
   });
+
+  it("Respects engine mapping for downstream browsers (Gecko vs Blink)", () => {
+    const allWithDownstream = getAllVersions({
+      includeDownstreamBrowsers: true,
+      includeKaiOS: true,
+    });
+    const kaiOSVersions = allWithDownstream.filter(
+      (v) => v.browser === "kai_os",
+    );
+    expect(kaiOSVersions.length).toBeGreaterThan(0);
+    expect(kaiOSVersions[0].engine).toBe("Gecko");
+  });
 });
 
 describe("getTimeline", () => {
