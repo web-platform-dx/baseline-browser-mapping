@@ -18,6 +18,21 @@ describe("getCompatibleVersions default", () => {
     ).toBeGreaterThan(7);
   });
 
+  it("Preserves canonical array order: core browsers first, then downstream browsers", () => {
+    const versions = getCompatibleVersions({ includeDownstreamBrowsers: true });
+    const coreNames = [
+      "chrome",
+      "chrome_android",
+      "edge",
+      "firefox",
+      "firefox_android",
+      "safari",
+      "safari_ios",
+    ];
+    const firstSeven = versions.slice(0, 7).map((v) => v.browser);
+    expect(firstSeven).toEqual(coreNames);
+  });
+
   it("Doesn't have 0 as the version for any browser", () => {
     const arrayOfVersions = getCompatibleVersions().map((version) => {
       return version.version;

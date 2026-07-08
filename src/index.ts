@@ -176,6 +176,50 @@ const coreBrowsers = Object.keys(nameMappings)
     return { shortName: shortName, longName: longName };
   });
 
+const downstreamOrder: string[] = [
+  "webview_android",
+  "samsunginternet_android",
+  "opera_android",
+  "opera",
+  "ya_android",
+  "uc_android",
+  "qq_android",
+  "kai_os",
+  "facebook_android",
+  "instagram_android",
+];
+
+const sortBrowserVersions = (versions: BrowserVersion[]): BrowserVersion[] => {
+  const coreResults: BrowserVersion[] = [];
+  const downstreamResults: BrowserVersion[] = [];
+
+  versions.forEach((item) => {
+    const isCore = coreBrowsers.some((b) => b.longName === item.browser);
+    if (isCore) {
+      coreResults.push(item);
+    } else {
+      downstreamResults.push(item);
+    }
+  });
+
+  coreResults.sort((a, b) => {
+    if (a.browser < b.browser) return -1;
+    if (a.browser > b.browser) return 1;
+    return compareVersions(a.version, b.version);
+  });
+
+  downstreamResults.sort((a, b) => {
+    const indexA = downstreamOrder.indexOf(a.browser);
+    const indexB = downstreamOrder.indexOf(b.browser);
+    if (indexA !== indexB) {
+      return indexA - indexB;
+    }
+    return compareVersions(a.version, b.version);
+  });
+
+  return [...coreResults, ...downstreamResults];
+};
+
 type versionsObject = {
   [browser: string]: BrowserVersion;
 };
@@ -390,17 +434,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
     }
   });
 
-  result.sort((a, b) => {
-    if (a.browser < b.browser) {
-      return -1;
-    } else if (a.browser > b.browser) {
-      return 1;
-    } else {
-      return compareVersions(a.version, b.version);
-    }
-  });
-
-  return result;
+  return sortBrowserVersions(result);
 }
 
 /**
@@ -756,19 +790,11 @@ export function getTimeline(
     });
 
     if (activeBrowsers.length > 0) {
-      activeBrowsers.sort((a, b) => {
-        if (a.browser < b.browser) {
-          return -1;
-        } else if (a.browser > b.browser) {
-          return 1;
-        } else {
-          return compareVersions(a.version, b.version);
-        }
-      });
+      const sortedActiveBrowsers = sortBrowserVersions(activeBrowsers);
 
       result.push({
         date: changeDate,
-        browsers: activeBrowsers,
+        browsers: sortedActiveBrowsers,
       });
     }
   });
