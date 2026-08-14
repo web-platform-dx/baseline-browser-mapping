@@ -150,8 +150,9 @@ const handleUas = (
   return [somethingChanged, existingData];
 };
 
-if (process.argv.length === 2) {
-  console.error("Expected at least one argument!");
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  console.error("Expected API_KEY environment variable to be set!");
   process.exit(1);
 } else {
   const options = {
@@ -160,7 +161,7 @@ if (process.argv.length === 2) {
     path: "/api/v1/web-platform-baseline",
     method: "GET",
     headers: {
-      "x-api-key": `Bearer ${process.argv[2]}`,
+      "x-api-key": `Bearer ${apiKey}`,
       "Content-Type": " application/json",
     },
   };
