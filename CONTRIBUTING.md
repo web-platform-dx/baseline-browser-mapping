@@ -47,7 +47,7 @@ The timeline file [`src/data/timeline.js`](src/data/timeline.js) consists of thr
 
 ### Runtime Reconstruction
 
-On module load, the library parses the timeline string and automatically merges the chronological entries with the optimized `releases` section to reconstruct the complete set of all releases in memory. This provides 100% data completeness for queries like `getAllVersions()`.
+The first time `getCompatibleVersions()` or `getTimeline()` is called, the library parses the timeline string and automatically merges the chronological entries with the optimized `releases` section to reconstruct the complete set of all releases in memory. This provides 100% data completeness for queries like `getAllVersions()`.
 
 ## GitHub Workflows
 

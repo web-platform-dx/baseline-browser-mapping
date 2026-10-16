@@ -4,6 +4,7 @@ import downstreamBrowsers from "../src/data/downstream-browsers.json" with { typ
 import { writeFileSync } from "fs";
 import { compareVersions } from "../src/utils.js";
 import { BrowserVersion } from "../src/types.js";
+import { timelineString as currentTimelineString } from "../src/data/timeline.js";
 
 const normalizeReleaseDate = (date?: string | null): string => {
   if (!date || date === "unknown" || date === "u") {
@@ -579,8 +580,10 @@ Object.entries(allReleases).forEach(([browserName, versions]) => {
   });
 });
 
-const now = new Date().getTime();
-writeFileSync(
-  "./src/data/timeline.js",
-  `const timelineString = \`${timelineString}\`;const lastUpdated = ${now};export {timelineString, lastUpdated}`,
-);
+if (timelineString !== currentTimelineString) {
+  const now = new Date().getTime();
+  writeFileSync(
+    "./src/data/timeline.js",
+    `const timelineString = \`${timelineString}\`;const lastUpdated = ${now};export {timelineString, lastUpdated}`,
+  );
+}

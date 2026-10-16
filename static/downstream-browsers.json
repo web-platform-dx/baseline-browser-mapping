@@ -724,6 +724,12 @@
           "engine_version": "150",
           "status": "unknown",
           "release_date": "2026-08-01"
+        },
+        "26.10": {
+          "engine": "Blink",
+          "engine_version": "152",
+          "status": "unknown",
+          "release_date": "2026-10-08"
         }
       }
     },
@@ -1145,6 +1151,18 @@
           "engine_version": "123",
           "status": "unknown",
           "release_date": "2026-07-02"
+        },
+        "18.10": {
+          "engine": "Blink",
+          "engine_version": "123",
+          "status": "unknown",
+          "release_date": "2026-08-08"
+        },
+        "19.0": {
+          "engine": "Blink",
+          "engine_version": "123",
+          "status": "unknown",
+          "release_date": "2026-08-24"
         }
       }
     },
@@ -1728,6 +1746,18 @@
           "engine_version": "121",
           "status": "unknown",
           "release_date": "2026-07-28"
+        },
+        "20.5": {
+          "engine": "Blink",
+          "engine_version": "121",
+          "status": "unknown",
+          "release_date": "2026-08-17"
+        },
+        "20.6": {
+          "engine": "Blink",
+          "engine_version": "121",
+          "status": "unknown",
+          "release_date": "2026-09-15"
         }
       }
     },
@@ -3967,9 +3997,27 @@
           "engine_version": "150",
           "status": "unknown",
           "release_date": "2026-07-22"
+        },
+        "443": {
+          "engine": "Blink",
+          "engine_version": "151",
+          "status": "unknown",
+          "release_date": "2026-08-21"
+        },
+        "444": {
+          "engine": "Blink",
+          "engine_version": "151",
+          "status": "unknown",
+          "release_date": "2026-08-27"
+        },
+        "446": {
+          "engine": "Blink",
+          "engine_version": "153",
+          "status": "unknown",
+          "release_date": "2026-09-12"
         }
       }
     }
   },
-  "lastUpdated": "2026-08-01T15:00:56.422Z"
+  "lastUpdated": "2026-10-08T19:43:05.075Z"
 }
