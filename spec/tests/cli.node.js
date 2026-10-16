@@ -15,7 +15,7 @@ describe("CLI", () => {
       (error, stdout, stderr) => {
         expect(error).toBe(null);
         expect(stdout).toContain(
-          "{ browser: 'chrome', version: '87', release_date: '2020-11-19' }",
+          "{ browser: 'chrome', version: '87', release_date: '2020-11-17' }",
         );
         done();
       },
@@ -28,7 +28,7 @@ describe("CLI", () => {
       (error, stdout, stderr) => {
         expect(error).toBe(null);
         expect(stdout).toContain(
-          "{ browser: 'chrome', version: '85', release_date: '2020-09-16' }",
+          "{ browser: 'chrome', version: '85', release_date: '2020-08-25' }",
         );
         done();
       },

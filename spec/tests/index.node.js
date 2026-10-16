@@ -1,6 +1,7 @@
 import {
   getCompatibleVersions,
   getAllVersions,
+  getTimeline,
   _resetHasWarned,
 } from "baseline-browser-mapping";
 import fs from "fs";
@@ -15,6 +16,21 @@ describe("getCompatibleVersions default", () => {
     expect(
       getCompatibleVersions({ includeDownstreamBrowsers: true }).length,
     ).toBeGreaterThan(7);
+  });
+
+  it("Preserves canonical array order: core browsers first, then downstream browsers", () => {
+    const versions = getCompatibleVersions({ includeDownstreamBrowsers: true });
+    const coreNames = [
+      "chrome",
+      "chrome_android",
+      "edge",
+      "firefox",
+      "firefox_android",
+      "safari",
+      "safari_ios",
+    ];
+    const firstSeven = versions.slice(0, 7).map((v) => v.browser);
+    expect(firstSeven).toEqual(coreNames);
   });
 
   it("Doesn't have 0 as the version for any browser", () => {
@@ -148,5 +164,203 @@ describe("getAllVersions default", () => {
     expect(csvExportLines[1].startsWith('"chrome","0","pre_baseline"')).toBe(
       true,
     );
+  });
+
+  it("Respects engine mapping for downstream browsers (Gecko vs Blink)", () => {
+    const allWithDownstream = getAllVersions({
+      includeDownstreamBrowsers: true,
+      includeKaiOS: true,
+    });
+    const kaiOSVersions = allWithDownstream.filter(
+      (v) => v.browser === "kai_os",
+    );
+    expect(kaiOSVersions.length).toBeGreaterThan(0);
+    expect(kaiOSVersions[0].engine).toBe("Gecko");
+  });
+});
+
+describe("getTimeline", () => {
+  it("Returns a timeline array of events", () => {
+    const timeline = getTimeline();
+    expect(timeline).toBeDefined();
+    expect(Array.isArray(timeline)).toBe(true);
+    expect(timeline.length).toBeGreaterThan(0);
+
+    const firstEvent = timeline[0];
+    expect(firstEvent.date).toBeDefined();
+    expect(Array.isArray(firstEvent.browsers)).toBe(true);
+    expect(firstEvent.browsers.length).toBeGreaterThan(0);
+
+    // Verify chronological order
+    for (let i = 1; i < timeline.length; i++) {
+      expect(new Date(timeline[i].date) > new Date(timeline[i - 1].date)).toBe(
+        true,
+      );
+    }
+  });
+
+  it("By default, each event only contains core browsers that changed on that date", () => {
+    const timeline = getTimeline();
+    // In default settings, downstream and KaiOS are excluded
+    timeline.forEach((event) => {
+      event.browsers.forEach((browser) => {
+        expect(browser.engine).toBeUndefined(); // core browsers have no engine property
+        expect(browser.browser).not.toBe("kai_os");
+      });
+    });
+
+    // Verify a specific date, e.g. 2015-09-22, where only Firefox / Firefox Android changed.
+    const event = timeline.find((e) => e.date === "2015-09-22");
+    expect(event).toBeDefined();
+    expect(event.browsers.length).toBe(2);
+    const browserNames = event.browsers.map((b) => b.browser);
+    expect(browserNames).toContain("firefox");
+    expect(browserNames).toContain("firefox_android");
+  });
+
+  it("listAllBrowsers option returns all compatible browsers at each point in time", () => {
+    const timeline = getTimeline({ listAllBrowsers: true });
+
+    // Every event should have all active core browsers
+    timeline.forEach((event) => {
+      const browserNames = event.browsers.map((b) => b.browser);
+      // There are 7 core browsers
+      expect(browserNames.length).toBe(7);
+      expect(browserNames).toContain("chrome");
+      expect(browserNames).toContain("chrome_android");
+      expect(browserNames).toContain("edge");
+      expect(browserNames).toContain("firefox");
+      expect(browserNames).toContain("firefox_android");
+      expect(browserNames).toContain("safari");
+      expect(browserNames).toContain("safari_ios");
+    });
+
+    // On 2015-09-22, Firefox should be version 41, but Chrome should still be version 38 (from 2015-07-29)
+    const event = timeline.find((e) => e.date === "2015-09-22");
+    expect(event).toBeDefined();
+
+    const chrome = event.browsers.find((b) => b.browser === "chrome");
+    const firefox = event.browsers.find((b) => b.browser === "firefox");
+
+    expect(chrome.version).toBe("38");
+    expect(firefox.version).toBe("41");
+  });
+
+  it("includeDownstreamBrowsers option includes downstream browsers", () => {
+    const timeline = getTimeline({ includeDownstreamBrowsers: true });
+
+    // There should be downstream browsers in the events
+    let hasDownstream = false;
+    timeline.forEach((event) => {
+      event.browsers.forEach((browser) => {
+        if (browser.engine !== undefined) {
+          hasDownstream = true;
+        }
+      });
+    });
+    expect(hasDownstream).toBe(true);
+  });
+
+  it("includeKaiOS option includes KaiOS when downstream is also enabled", () => {
+    const timeline = getTimeline({
+      includeKaiOS: true,
+      includeDownstreamBrowsers: true,
+    });
+
+    let hasKaiOS = false;
+    timeline.forEach((event) => {
+      event.browsers.forEach((browser) => {
+        if (browser.browser === "kai_os") {
+          hasKaiOS = true;
+        }
+      });
+    });
+    expect(hasKaiOS).toBe(true);
+  });
+
+  it("Throws an error if includeKaiOS is true but includeDownstreamBrowsers is false", () => {
+    expect(() => {
+      getTimeline({ includeKaiOS: true });
+    }).toThrowError(/KaiOS is a downstream browser/);
+  });
+
+  describe("groupBy: 'browser'", () => {
+    it("Returns an object grouped by browser with chronological version histories", () => {
+      const timeline = getTimeline({ groupBy: "browser" });
+      expect(timeline).toBeDefined();
+      expect(typeof timeline).toBe("object");
+      expect(Array.isArray(timeline)).toBe(false);
+
+      // Should have keys for core browsers
+      expect(Array.isArray(timeline.chrome)).toBe(true);
+      expect(Array.isArray(timeline.safari)).toBe(true);
+      expect(Array.isArray(timeline.firefox)).toBe(true);
+
+      // Entries should be sorted by date and have correct structure
+      const chromeHistory = timeline.chrome;
+      expect(chromeHistory.length).toBeGreaterThan(0);
+      expect(chromeHistory[0].date).toBeDefined();
+      expect(chromeHistory[0].version).toBeDefined();
+      expect(chromeHistory[0].release_date).toBeDefined();
+
+      for (let i = 1; i < chromeHistory.length; i++) {
+        expect(
+          new Date(chromeHistory[i].date) > new Date(chromeHistory[i - 1].date),
+        ).toBe(true);
+      }
+    });
+
+    it("Only lists dates when that browser actually changed by default", () => {
+      const timeline = getTimeline({ groupBy: "browser" });
+
+      // On 2015-09-22, only Firefox / Firefox Android changed.
+      // So Chrome's history should NOT contain an entry for 2015-09-22.
+      // Firefox's history SHOULD contain an entry for 2015-09-22.
+      const chromeHistory = timeline.chrome;
+      const firefoxHistory = timeline.firefox;
+
+      expect(chromeHistory.some((entry) => entry.date === "2015-09-22")).toBe(
+        false,
+      );
+      expect(firefoxHistory.some((entry) => entry.date === "2015-09-22")).toBe(
+        true,
+      );
+    });
+
+    it("Includes downstream browsers when includeDownstreamBrowsers is true", () => {
+      const timeline = getTimeline({
+        groupBy: "browser",
+        includeDownstreamBrowsers: true,
+      });
+
+      // Should have keys for downstream browsers (e.g. opera)
+      expect(Array.isArray(timeline.opera)).toBe(true);
+      expect(timeline.opera.length).toBeGreaterThan(0);
+    });
+
+    it("Lists all dates when listAllBrowsers is true", () => {
+      const timeline = getTimeline({
+        groupBy: "browser",
+        listAllBrowsers: true,
+      });
+
+      // With listAllBrowsers, every browser gets an entry on every date.
+      // So both Chrome and Firefox should have an entry for 2015-09-22.
+      const chromeHistory = timeline.chrome;
+      const firefoxHistory = timeline.firefox;
+
+      expect(chromeHistory.some((entry) => entry.date === "2015-09-22")).toBe(
+        true,
+      );
+      expect(firefoxHistory.some((entry) => entry.date === "2015-09-22")).toBe(
+        true,
+      );
+
+      // The version of Chrome on 2015-09-22 should still be 38
+      const chromeEntry = chromeHistory.find(
+        (entry) => entry.date === "2015-09-22",
+      );
+      expect(chromeEntry.version).toBe("38");
+    });
   });
 });

@@ -1,5 +1,6 @@
 import https from "node:https";
 import { writeFileSync, readFileSync } from "node:fs";
+import { compareVersions } from "../src/utils.js";
 
 interface BrowserRelease {
   engine: string;
@@ -26,49 +27,6 @@ interface UserAgent {
 interface UserAgentData {
   uas: UserAgent[];
 }
-
-const compareVersions = (
-  incomingVersionString: string,
-  previousVersionString: string,
-): number => {
-  if (incomingVersionString === previousVersionString) {
-    return 0;
-  }
-
-  let [incomingVersionStringMajor, incomingVersionStringMinor] =
-    incomingVersionString.split(".");
-  let [previousVersionStringMajor, previousVersionStringMinor] =
-    previousVersionString.split(".");
-
-  if (!incomingVersionStringMajor || !previousVersionStringMajor) {
-    throw new Error(
-      "One of these version strings is broken: " +
-        incomingVersionString +
-        " or " +
-        previousVersionString +
-        "",
-    );
-  }
-
-  if (
-    parseInt(incomingVersionStringMajor) > parseInt(previousVersionStringMajor)
-  ) {
-    return 1;
-  }
-
-  if (incomingVersionStringMinor) {
-    if (
-      parseInt(incomingVersionStringMajor) ==
-        parseInt(previousVersionStringMajor) &&
-      (!previousVersionStringMinor ||
-        parseInt(incomingVersionStringMinor) >
-          parseInt(previousVersionStringMinor))
-    ) {
-      return 1;
-    }
-  }
-  return -1;
-};
 
 const findLatestVersion = (releases: {
   [version: string]: BrowserRelease;
@@ -141,8 +99,8 @@ const handleUas = (
       let browserVersionMatch = ua.ua.match(browser.regex);
       if (browserVersionMatch) {
         let browserName = browser.name;
-        let browserVersion;
-        let chromiumVersion;
+        let browserVersion: string | undefined;
+        let chromiumVersion: string | undefined;
         if (browserVersionMatch[0] == "coc_coc_browser") {
           browserVersion = browserVersionMatch[3].toString().trim();
           chromiumVersion = browserVersionMatch[2].toString().trim();
@@ -152,7 +110,7 @@ const handleUas = (
             chromiumVersion = browserVersionMatch[1].toString().trim();
           }
         }
-        if (browserVersion != undefined) {
+        if (browserVersion !== undefined && chromiumVersion !== undefined) {
           if (
             compareVersions(
               browserVersion,
