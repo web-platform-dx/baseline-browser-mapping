@@ -38,7 +38,7 @@
     "test:jasmine-browser": "npx jasmine-browser-runner runSpecs --config ./spec/support/jasmine-browser.js",
     "test": "npm run build && npm run fix-cli-permissions && npm run test:format && npm run test:lint && npm run test:jasmine && npm run test:jasmine-browser",
     "build": "rm -rf dist; npx prettier . --write; rollup -c; rm -rf ./dist/scripts/expose-data.d.ts ./dist/cli.d.ts",
-    "refresh-downstream": "npx tsx scripts/refresh-downstream.ts",
+    "refresh-downstream": "npx tsx --env-file-if-exists=.env scripts/refresh-downstream.ts",
     "refresh-static": "npx tsx scripts/refresh-static.ts",
     "update-timeline": "npx tsx scripts/create-timeline.ts; npx prettier ./src/data/timeline.js --write",
     "update-data-dependencies": "npm i @mdn/browser-compat-data@latest web-features@latest -D",

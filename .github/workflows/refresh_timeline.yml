@@ -33,7 +33,9 @@ jobs:
       - name: Run refresh-downstream.ts
         if: steps.update-bcd-and-web-features.outcome == 'success'
         id: refresh-downstream-script
-        run: npm run refresh-downstream ${{ secrets.USERAGENTSIOKEY }}
+        run: npm run refresh-downstream
+        env:
+          API_KEY: ${{ secrets.USERAGENTSIOKEY }}
 
       - name: Attempt to update timeline.js file
         if: steps.refresh-downstream-script.outcome == 'success'
