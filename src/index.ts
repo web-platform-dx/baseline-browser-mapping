@@ -50,89 +50,107 @@ const expandReleaseDate = (date: string): string => {
   return date;
 };
 
-const timeline: CondensedTimeline = {};
-const allReleases: Record<string, CondensedTimelineEntry[]> = {};
+type TimelineData = {
+  timeline: CondensedTimeline;
+  mergedReleases: Record<string, CondensedTimelineEntry[]>;
+};
 
-let changeDate = "";
-let parsingReleases = false;
+// Parsing the condensed timeline takes a few milliseconds, so it is done on
+// first use instead of when the module is loaded.
+let timelineData: TimelineData | undefined;
 
-timelineString.split("\n").forEach((line) => {
-  line = line.trim();
-  if (!line) {
-    return;
+const getTimelineData = (): TimelineData => {
+  if (timelineData) {
+    return timelineData;
   }
-  if (line === "releases") {
-    parsingReleases = true;
-    return;
-  }
-  if (parsingReleases) {
-    const parts = line.split(",");
-    if (parts.length >= 3) {
-      const [shortName, version, releaseDate, engineVersion] = parts;
-      const entry: CondensedTimelineEntry = [
-        shortName! as any,
-        version!,
-        expandReleaseDate(releaseDate!.trim()),
-      ];
-      if (engineVersion) {
-        entry.push(engineVersion.trim());
-      }
-      if (!allReleases[shortName!]) {
-        allReleases[shortName!] = [];
-      }
-      allReleases[shortName!]!.push(entry);
+
+  const timeline: CondensedTimeline = {};
+  const allReleases: Record<string, CondensedTimelineEntry[]> = {};
+
+  let changeDate = "";
+  let parsingReleases = false;
+
+  timelineString.split("\n").forEach((line) => {
+    line = line.trim();
+    if (!line) {
+      return;
     }
-    return;
-  }
-  if (line.startsWith("20") || line.startsWith("pre_baseline")) {
-    changeDate = expandReleaseDate(line);
-    timeline[changeDate] = [];
-    return;
-  } else {
-    const parts = line.split(",");
-    if (parts.length >= 3) {
-      const [shortName, version, releaseDate, engineVersion] = parts;
-      const entry: CondensedTimelineEntry = [
-        shortName! as any,
-        version!,
-        expandReleaseDate(releaseDate!.trim()),
-      ];
-      if (engineVersion) {
-        entry.push(engineVersion.trim());
-      }
-      if (!timeline[changeDate]) {
-        throw new Error(
-          `Timeline entry for date ${changeDate} is undefined. This should not happen.`,
-        );
-      }
-      timeline[changeDate]!.push(entry);
+    if (line === "releases") {
+      parsingReleases = true;
+      return;
     }
-  }
-});
-
-const mergedReleases: Record<string, CondensedTimelineEntry[]> = {};
-
-// Reconstruct the full list of releases for each browser by merging the timeline and allReleases.
-Object.keys(nameMappings).forEach((shortName) => {
-  mergedReleases[shortName] = [...(allReleases[shortName] ?? [])];
-});
-
-Object.keys(timeline).forEach((changeDate) => {
-  const changeList = timeline[changeDate]!;
-  changeList.forEach((change) => {
-    const shortName = change[0];
-    if (mergedReleases[shortName]) {
-      if (!mergedReleases[shortName].some((item) => item[1] === change[1])) {
-        mergedReleases[shortName].push(change);
+    if (parsingReleases) {
+      const parts = line.split(",");
+      if (parts.length >= 3) {
+        const [shortName, version, releaseDate, engineVersion] = parts;
+        const entry: CondensedTimelineEntry = [
+          shortName! as any,
+          version!,
+          expandReleaseDate(releaseDate!.trim()),
+        ];
+        if (engineVersion) {
+          entry.push(engineVersion.trim());
+        }
+        if (!allReleases[shortName!]) {
+          allReleases[shortName!] = [];
+        }
+        allReleases[shortName!]!.push(entry);
+      }
+      return;
+    }
+    if (line.startsWith("20") || line.startsWith("pre_baseline")) {
+      changeDate = expandReleaseDate(line);
+      timeline[changeDate] = [];
+      return;
+    } else {
+      const parts = line.split(",");
+      if (parts.length >= 3) {
+        const [shortName, version, releaseDate, engineVersion] = parts;
+        const entry: CondensedTimelineEntry = [
+          shortName! as any,
+          version!,
+          expandReleaseDate(releaseDate!.trim()),
+        ];
+        if (engineVersion) {
+          entry.push(engineVersion.trim());
+        }
+        if (!timeline[changeDate]) {
+          throw new Error(
+            `Timeline entry for date ${changeDate} is undefined. This should not happen.`,
+          );
+        }
+        timeline[changeDate]!.push(entry);
       }
     }
   });
-});
 
-Object.keys(mergedReleases).forEach((shortName) => {
-  const list = mergedReleases[shortName]!;
-  list.sort((a, b) => compareVersions(a[1], b[1]));
-});
+  const mergedReleases: Record<string, CondensedTimelineEntry[]> = {};
+
+  // Reconstruct the full list of releases for each browser by merging the timeline and allReleases.
+  Object.keys(nameMappings).forEach((shortName) => {
+    mergedReleases[shortName] = [...(allReleases[shortName] ?? [])];
+  });
+
+  Object.keys(timeline).forEach((changeDate) => {
+    const changeList = timeline[changeDate]!;
+    changeList.forEach((change) => {
+      const shortName = change[0];
+      if (mergedReleases[shortName]) {
+        if (!mergedReleases[shortName].some((item) => item[1] === change[1])) {
+          mergedReleases[shortName].push(change);
+        }
+      }
+    });
+  });
+
+  Object.keys(mergedReleases).forEach((shortName) => {
+    const list = mergedReleases[shortName]!;
+    list.sort((a, b) => compareVersions(a[1], b[1]));
+  });
+
+  timelineData = { timeline, mergedReleases };
+  return timelineData;
+};
 
 let hasWarned = false;
 
@@ -274,6 +292,7 @@ const reconstructBrowserVersion = (
  * - `supressWarnings`: `false` (default) or `true`
  */
 export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
+  const { timeline, mergedReleases } = getTimelineData();
   let incomingOptions = userOptions ?? {};
 
   let options: Options = {
@@ -720,6 +739,7 @@ export function getTimeline(
 export function getTimeline(
   userOptions?: TimelineOptions,
 ): TimelineEvent[] | BrowserTimeline {
+  const { timeline } = getTimelineData();
   const incomingOptions = userOptions ?? {};
   const options = {
     groupBy: incomingOptions.groupBy ?? "date",
