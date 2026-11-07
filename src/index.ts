@@ -323,7 +323,7 @@ export function getCompatibleVersions(userOptions?: Options): BrowserVersion[] {
 
   // Sets a cutoff date for feature interoperability 30 months before the stated date
   if (options.widelyAvailableOnDate || options.targetYear === undefined) {
-    targetDate.setMonth(targetDate.getMonth() - 30);
+    targetDate.setUTCMonth(targetDate.getUTCMonth() - 30);
   }
 
   if (!options.suppressWarnings) {
