@@ -148,6 +148,40 @@ describe("getCompatibleVersions default", () => {
     });
     expect(console.warn).not.toHaveBeenCalled();
   });
+
+  it("Returns the same versions for widelyAvailableOnDate in every time zone", () => {
+    const originalTimeZone = process.env.TZ;
+    const dates = ["2024-08-03", "2024-09-01", "2025-02-23"];
+    const versionsInTimeZone = (timeZone) => {
+      process.env.TZ = timeZone;
+      return dates.map((date) =>
+        getCompatibleVersions({
+          widelyAvailableOnDate: date,
+          suppressWarnings: true,
+        }),
+      );
+    };
+
+    try {
+      const utcVersions = versionsInTimeZone("UTC");
+      [
+        "America/Chicago",
+        "America/Phoenix",
+        "Europe/Helsinki",
+        "Pacific/Auckland",
+      ].forEach((timeZone) => {
+        expect(versionsInTimeZone(timeZone))
+          .withContext(timeZone)
+          .toEqual(utcVersions);
+      });
+    } finally {
+      if (originalTimeZone === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = originalTimeZone;
+      }
+    }
+  });
 });
 
 describe("getAllVersions default", () => {
